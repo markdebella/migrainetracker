@@ -16,7 +16,7 @@ const Auth = (() => {
   /** Called when GIS delivers a token (initial or refresh) */
   function handleToken(response) {
     if (response.error) {
-      console.error('Auth error:', response.error);
+      // Silent auto-login failed — just show the sign-in button, no error toast
       Alpine.store('auth').status = 'signed_out';
       return;
     }
@@ -26,6 +26,9 @@ const Auth = (() => {
 
     // Apply to GAPI
     gapi.client.setToken({ access_token: response.access_token });
+
+    // Remember that this user has signed in (enables silent auto-login next visit)
+    localStorage.setItem('mt_signed_in', '1');
 
     // Update Alpine store
     Alpine.store('auth').status = 'signed_in';
@@ -57,9 +60,14 @@ const Auth = (() => {
       // Load GAPI client (needed for Drive API calls)
       gapi.load('client', async () => {
         await gapi.client.init({});
-        // Check if we have a cached token hint (not the actual token — GIS doesn't persist tokens)
-        // We just mark ready so the sign-in button appears
         Alpine.store('auth').gapiReady = true;
+
+        // Auto-login: if the user has signed in before, attempt a silent token
+        // request. Works as long as their Google session is still active (typically
+        // 30+ days). Falls back silently to the sign-in button if it fails.
+        if (localStorage.getItem('mt_signed_in')) {
+          tokenClient.requestAccessToken({ prompt: '' });
+        }
       });
     },
 
@@ -81,6 +89,7 @@ const Auth = (() => {
       Alpine.store('data').manifest = null;
       Alpine.store('data').activeIncident = null;
       localStorage.removeItem('mt_folder_id');
+      localStorage.removeItem('mt_signed_in');
     },
 
     /** Returns the raw access token string, or null */

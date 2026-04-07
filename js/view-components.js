@@ -514,6 +514,12 @@ function Settings() {
   return {
     loading: true,
     exporting: false,
+    importing: false,
+    importProgress: 0,
+    importStatus: '',
+    importError: '',
+    importDone: false,
+    importDoneMessage: '',
     newAttackType: '',
     notifPermission: 'default',
 
@@ -522,6 +528,59 @@ function Settings() {
     async init() {
       this.loading = false;
       this.notifPermission = Notifications.permission();
+      const manifest = Alpine.store('data').manifest;
+      if (manifest?.incidents?.length > 0) {
+        this.importDone = true;
+        this.importDoneMessage = `${manifest.incidents.length} incidents already in Drive.`;
+      }
+    },
+
+    async startImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      this.importError = '';
+      let incidents;
+      try {
+        const text = await file.text();
+        incidents = JSON.parse(text);
+        if (!Array.isArray(incidents)) throw new Error('Expected a JSON array.');
+      } catch (e) {
+        this.importError = 'Invalid file: ' + e.message;
+        return;
+      }
+      this.importing = true;
+      this.importProgress = 0;
+      this.importStatus = `Uploading 0 of ${incidents.length}…`;
+      try {
+        await Drive.batchWriteIncidents(incidents, (done, total) => {
+          this.importProgress = Math.round((done / total) * 100);
+          this.importStatus = `Uploading ${done} of ${total}…`;
+        });
+        const manifestIncidents = incidents.map(inc => ({
+          id: inc.id,
+          startTime: inc.startTime,
+          endTime: inc.endTime ?? null,
+          isActive: inc.isActive ?? false,
+          type: inc.type ?? 'migraine',
+          customTypeName: inc.customTypeName ?? null,
+          peakPainLevel: inc.peakPainLevel ?? null,
+          durationMinutes: inc.durationMinutes ?? null,
+        }));
+        manifestIncidents.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+        const manifest = { version: 1, updatedAt: new Date().toISOString(), incidents: manifestIncidents };
+        await Drive.saveManifest(manifest);
+        Alpine.store('data').manifest = manifest;
+        Alpine.store('data').allIncidents = null;
+        this.importDoneMessage = `${incidents.length} incidents imported successfully.`;
+        this.importDone = true;
+        Toast.success(`Imported ${incidents.length} incidents.`);
+      } catch (e) {
+        console.error('Import failed:', e);
+        this.importError = 'Upload failed — check your connection and try again.';
+        Toast.error('Import failed.');
+      } finally {
+        this.importing = false;
+      }
     },
 
     async save() {
