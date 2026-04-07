@@ -92,7 +92,7 @@
       <div>
         <label class="form-label">Pain Location</label>
         <p class="form-hint" style="margin-bottom:var(--space-md)" x-show="isEditing">
-          Tap a shaded region to select it. Tap an empty area to drop a precise pain pin.
+          Tap a zone to select it. Tap outside zones to drop a precise pain pin.
           Tap a pin to remove it.
         </p>
         <div class="head-diagram">
@@ -102,15 +102,23 @@
               <div class="head-diagram__svg-wrapper"
                    :class="{'view-mode': !isEditing}"
                    @click="handlePanelClick($event, view.key)">
+                <!-- PNG background -->
+                <img :src="view.imgSrc" :alt="view.label + ' view'"
+                     style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none">
+                <!-- SVG zone overlay -->
                 <div x-html="svgContent[view.key]"
-                     style="width:100%;height:100%;position:absolute;inset:0"
+                     style="position:absolute;inset:0;width:100%;height:100%"
                      @click.capture="onSvgClick($event, view.key)">
                 </div>
-                <svg :viewBox="'0 0 200 280'"
-                     style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
-                  <template x-for="(pin, idx) in incident.painLocations[view.key].pins" :key="idx">
+                <!-- Pain pins -->
+                <svg :viewBox="view.viewBox"
+                     style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"
+                     preserveAspectRatio="xMidYMid meet">
+                  <template x-for="(pin, idx) in incident.painLocations[view.key]?.pins" :key="idx">
                     <circle class="pain-pin"
-                            :cx="pin.x * 200" :cy="pin.y * 280" r="5"
+                            :cx="pin.x * parseInt(view.viewBox.split(' ')[2])"
+                            :cy="pin.y * parseInt(view.viewBox.split(' ')[3])"
+                            r="8"
                             :style="isEditing ? 'pointer-events:all;cursor:pointer' : 'pointer-events:none'"
                             @click.stop="isEditing && removePin(view.key, idx)"
                             :title="isEditing ? 'Tap to remove pin' : ''"/>
@@ -119,8 +127,8 @@
               </div>
               <!-- Selected region chips -->
               <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px"
-                   x-show="incident.painLocations[view.key].regions.length">
-                <template x-for="rid in incident.painLocations[view.key].regions" :key="rid">
+                   x-show="incident.painLocations[view.key]?.regions?.length">
+                <template x-for="rid in incident.painLocations[view.key]?.regions ?? []" :key="rid">
                   <span style="background:var(--accent-dim);color:var(--accent);font-size:0.7rem;padding:2px 8px;border-radius:var(--radius-full);display:inline-flex;align-items:center;gap:4px">
                     <span x-text="regionLabel(rid)"></span>
                     <button type="button" x-show="isEditing"

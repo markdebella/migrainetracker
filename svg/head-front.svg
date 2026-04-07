@@ -1,182 +1,104 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 280" role="img" aria-label="Front head view">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 677" role="img" aria-label="Front head view">
 
-  <!-- ── Silhouette ─────────────────────────────────────────────────────── -->
-  <path class="head-outline" d="
-    M 100 18
-    C 81 18, 53 28, 41 52
-    C 29 76, 31 102, 35 124
-    C 39 146, 51 168, 65 188
-    C 77 206, 91 218, 100 220
-    C 109 218, 123 206, 135 188
-    C 149 168, 161 146, 165 124
-    C 169 102, 171 76, 159 52
-    C 147 28, 119 18, 100 18 Z
-  "/>
+  <!-- Zones match the dashed-line divisions in head_diagram.png (front) -->
+  <!-- The image is oriented: viewer's right = patient's left -->
 
-  <!-- Left ear -->
-  <path class="head-detail" d="
-    M 35 114 C 28 116, 22 126, 24 140 C 26 154, 34 160, 40 158
-    M 30 122 C 26 130, 27 142, 32 150
-    M 35 136 C 37 140, 39 143, 38 148
-  "/>
-
-  <!-- Right ear -->
-  <path class="head-detail" d="
-    M 165 114 C 172 116, 178 126, 176 140 C 174 154, 166 160, 160 158
-    M 170 122 C 174 130, 173 142, 168 150
-    M 165 136 C 163 140, 161 143, 162 148
-  "/>
-
-  <!-- Hairline -->
-  <path class="head-detail" d="M 50 38 C 66 24, 84 18, 100 18 C 116 18, 134 24, 150 38"/>
-
-  <!-- Left eyebrow (arched) -->
-  <path class="head-detail" d="M 57 88 C 68 79, 85 77, 97 82"/>
-
-  <!-- Right eyebrow -->
-  <path class="head-detail" d="M 143 88 C 132 79, 115 77, 103 82"/>
-
-  <!-- Left eye — upper lid -->
-  <path class="head-detail" d="M 59 97 C 70 89, 87 88, 97 95"/>
-  <!-- Left eye — lower lid -->
-  <path class="head-detail" d="M 59 97 C 70 105, 87 105, 97 95"/>
-  <!-- Left iris -->
-  <circle cx="78" cy="96" r="7" class="head-detail" fill="none"/>
-
-  <!-- Right eye — upper lid -->
-  <path class="head-detail" d="M 141 97 C 130 89, 113 88, 103 95"/>
-  <!-- Right eye — lower lid -->
-  <path class="head-detail" d="M 141 97 C 130 105, 113 105, 103 95"/>
-  <!-- Right iris -->
-  <circle cx="122" cy="96" r="7" class="head-detail" fill="none"/>
-
-  <!-- Nose bridge (sides) -->
-  <path class="head-detail" d="M 93 95 C 91 110, 88 124, 84 136"/>
-  <path class="head-detail" d="M 107 95 C 109 110, 112 124, 116 136"/>
-  <!-- Nose tip and wings -->
-  <path class="head-detail" d="
-    M 84 136 C 80 144, 83 152, 92 150
-    C 96 148, 100 145, 100 145
-    C 100 145, 104 148, 108 150
-    C 117 152, 120 144, 116 136
-  "/>
-
-  <!-- Philtrum -->
-  <path class="head-detail" d="M 95 150 C 97 156, 100 158, 103 150"/>
-
-  <!-- Lips — upper (cupid's bow) -->
-  <path class="head-detail" d="
-    M 83 165 C 90 157, 97 155, 100 157
-    C 103 155, 110 157, 117 165
-  "/>
-  <!-- Lips — lower -->
-  <path class="head-detail" d="M 83 167 C 91 177, 109 177, 117 167 C 109 173, 91 173, 83 167 Z"/>
-  <!-- Mouth line -->
-  <path class="head-detail" d="M 83 166 C 91 171, 109 171, 117 166"/>
-
-  <!-- Chin crease -->
-  <path class="head-detail" d="M 93 208 C 97 214, 103 214, 107 208"/>
-
-  <!-- Neck -->
-  <path class="head-detail" d="M 84 218 L 82 254 M 116 218 L 118 254"/>
-  <path class="head-detail" d="M 82 253 C 90 257, 110 257, 118 253"/>
-
-  <!-- ── Clickable regions ──────────────────────────────────────────────── -->
-
-  <!-- Crown -->
-  <path class="head-region" data-region="front_crown" d="
-    M 62 22 C 76 15, 124 15, 138 22
-    C 126 35, 112 43, 100 45
-    C 88 43, 74 35, 62 22 Z
-  "/>
-
-  <!-- Forehead left -->
-  <path class="head-region" data-region="front_forehead_left" d="
-    M 43 54 C 52 36, 68 22, 84 22
-    L 96 45 L 96 86
-    C 84 83, 70 87, 59 95
-    L 46 74 Z
-  "/>
-
-  <!-- Forehead center -->
-  <path class="head-region" data-region="front_forehead_center" d="
-    M 96 45 C 98 40, 102 40, 104 45
-    L 104 86 C 102 85, 98 85, 96 86 Z
-  "/>
-
-  <!-- Forehead right -->
+  <!-- Right forehead (viewer's left) -->
   <path class="head-region" data-region="front_forehead_right" d="
-    M 157 54 C 148 36, 132 22, 116 22
-    L 104 45 L 104 86
-    C 116 83, 130 87, 141 95
-    L 154 74 Z
+    M 247 0
+    C 190 0, 120 10, 80 50
+    C 60 75, 50 105, 47 140
+    L 47 170
+    L 247 170
+    Z
   "/>
 
-  <!-- Temple left -->
-  <path class="head-region" data-region="front_temple_left" d="
-    M 37 126 C 35 108, 39 92, 46 76
-    L 59 95 C 58 107, 58 120, 59 130
-    L 48 136 Z
+  <!-- Left forehead (viewer's right) -->
+  <path class="head-region" data-region="front_forehead_left" d="
+    M 247 0
+    C 305 0, 375 10, 415 50
+    C 435 75, 445 105, 448 140
+    L 448 170
+    L 247 170
+    Z
   "/>
 
-  <!-- Temple right -->
+  <!-- Right temple & cheek -->
   <path class="head-region" data-region="front_temple_right" d="
-    M 163 126 C 165 108, 161 92, 154 76
-    L 141 95 C 142 107, 142 120, 141 130
-    L 152 136 Z
+    M 47 170
+    L 47 260
+    C 30 300, 22 330, 22 360
+    C 22 390, 30 410, 42 425
+    L 217 425
+    L 217 170
+    Z
   "/>
 
-  <!-- Eye area left -->
-  <path class="head-region" data-region="front_eye_left" d="
-    M 57 85 C 67 80, 84 80, 96 85
-    L 96 112 C 84 116, 68 116, 57 110 Z
+  <!-- Right eye / nose area (center-right strip) -->
+  <path class="head-region" data-region="front_face_right" d="
+    M 217 170
+    L 217 425
+    L 247 425
+    L 247 170
+    Z
   "/>
 
-  <!-- Eye area right -->
-  <path class="head-region" data-region="front_eye_right" d="
-    M 143 85 C 133 80, 116 80, 104 85
-    L 104 112 C 116 116, 132 116, 143 110 Z
+  <!-- Left eye / nose area (center-left strip) -->
+  <path class="head-region" data-region="front_face_left" d="
+    M 247 170
+    L 247 425
+    L 277 425
+    L 277 170
+    Z
   "/>
 
-  <!-- Nose / sinus -->
-  <path class="head-region" data-region="front_nose" d="
-    M 96 85 C 98 82, 102 82, 104 85
-    L 110 154 C 106 158, 100 159, 94 158
-    L 90 154 Z
+  <!-- Left temple & cheek -->
+  <path class="head-region" data-region="front_temple_left" d="
+    M 448 170
+    L 448 260
+    C 465 300, 472 330, 472 360
+    C 472 390, 465 410, 452 425
+    L 277 425
+    L 277 170
+    Z
   "/>
 
-  <!-- Cheek left -->
-  <path class="head-region" data-region="front_cheek_left" d="
-    M 37 126 C 39 142, 45 158, 53 170
-    L 69 172 C 69 158, 67 142, 61 130
-    L 48 136 Z
-  "/>
-
-  <!-- Cheek right -->
-  <path class="head-region" data-region="front_cheek_right" d="
-    M 163 126 C 161 142, 155 158, 147 170
-    L 131 172 C 133 158, 133 142, 139 130
-    L 152 136 Z
-  "/>
-
-  <!-- Jaw left -->
-  <path class="head-region" data-region="front_jaw_left" d="
-    M 53 170 C 57 182, 67 196, 79 208
-    L 93 210 C 91 198, 87 184, 83 170
-    L 69 172 Z
-  "/>
-
-  <!-- Jaw right -->
+  <!-- Right lower jaw -->
   <path class="head-region" data-region="front_jaw_right" d="
-    M 147 170 C 143 182, 133 196, 121 208
-    L 107 210 C 109 198, 113 184, 117 170
-    L 131 172 Z
+    M 42 425
+    C 35 460, 40 500, 55 535
+    L 80 575
+    L 247 575
+    L 247 425
+    Z
   "/>
 
-  <!-- Chin -->
-  <path class="head-region" data-region="front_chin" d="
-    M 83 168 C 89 162, 100 160, 117 168
-    L 121 208 C 115 216, 100 221, 79 208 Z
+  <!-- Left lower jaw -->
+  <path class="head-region" data-region="front_jaw_left" d="
+    M 452 425
+    C 460 460, 455 500, 440 535
+    L 415 575
+    L 247 575
+    L 247 425
+    Z
+  "/>
+
+  <!-- Right chin / neck -->
+  <path class="head-region" data-region="front_neck_right" d="
+    M 80 575
+    C 100 615, 130 645, 170 660
+    L 247 677
+    L 247 575
+    Z
+  "/>
+
+  <!-- Left chin / neck -->
+  <path class="head-region" data-region="front_neck_left" d="
+    M 415 575
+    C 395 615, 365 645, 325 660
+    L 247 677
+    L 247 575
+    Z
   "/>
 
 </svg>

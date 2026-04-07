@@ -1,104 +1,66 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 280" role="img" aria-label="Back head view">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 637" role="img" aria-label="Back head view">
 
-  <!-- ── Silhouette (rounded back of skull, no face features) ──────────── -->
-  <path class="head-outline" d="
-    M 100 18
-    C 80 18, 52 28, 40 54
-    C 28 80, 30 108, 34 130
-    C 38 152, 50 176, 66 196
-    C 78 212, 92 222, 100 224
-    C 108 222, 122 212, 134 196
-    C 150 176, 162 152, 166 130
-    C 170 108, 172 80, 160 54
-    C 148 28, 120 18, 100 18 Z
+  <!-- Zones match the dashed-line divisions in head_diagram.png (back) -->
+  <!-- Back view: vertical center + 2 horizontal lines = 6 zones -->
+
+  <!-- Top-left (right crown from behind) -->
+  <path class="head-region" data-region="back_crown_right" d="
+    M 247 0
+    C 175 0, 95 15, 55 65
+    C 40 85, 35 110, 33 140
+    L 33 182
+    L 247 182
+    Z
   "/>
 
-  <!-- Left ear -->
-  <path class="head-detail" d="
-    M 34 118 C 26 120, 22 132, 24 146 C 26 160, 34 166, 40 164
-    M 29 126 C 25 135, 26 148, 31 157
-    M 34 142 C 36 148, 38 151, 37 156
+  <!-- Top-right (left crown from behind) -->
+  <path class="head-region" data-region="back_crown_left" d="
+    M 247 0
+    C 320 0, 400 15, 440 65
+    C 455 85, 460 110, 462 140
+    L 462 182
+    L 247 182
+    Z
   "/>
 
-  <!-- Right ear -->
-  <path class="head-detail" d="
-    M 166 118 C 174 120, 178 132, 176 146 C 174 160, 166 166, 160 164
-    M 171 126 C 175 135, 174 148, 169 157
-    M 166 142 C 164 148, 162 151, 163 156
-  "/>
-
-  <!-- Back hairline (base of skull) -->
-  <path class="head-detail" d="M 72 216 C 82 222, 118 222, 128 216"/>
-
-  <!-- Neck -->
-  <path class="head-detail" d="M 84 222 L 82 256 M 116 222 L 118 256"/>
-  <path class="head-detail" d="M 82 255 C 90 260, 110 260, 118 255"/>
-
-  <!-- ── Clickable regions ──────────────────────────────────────────────── -->
-
-  <!-- Crown -->
-  <path class="head-region" data-region="back_crown" d="
-    M 62 22 C 76 14, 124 14, 138 22
-    C 126 36, 112 45, 100 47
-    C 88 45, 74 36, 62 22 Z
-  "/>
-
-  <!-- Occipital left -->
-  <path class="head-region" data-region="back_occipital_left" d="
-    M 42 56 C 52 36, 68 22, 84 22
-    L 96 47 L 96 140
-    C 78 136, 60 126, 46 112
-    L 38 86 Z
-  "/>
-
-  <!-- Occipital center -->
-  <path class="head-region" data-region="back_occipital_center" d="
-    M 96 47 C 98 42, 102 42, 104 47
-    L 104 140 C 102 140, 98 140, 96 140 Z
-  "/>
-
-  <!-- Occipital right -->
+  <!-- Mid-left (right occipital) -->
   <path class="head-region" data-region="back_occipital_right" d="
-    M 158 56 C 148 36, 132 22, 116 22
-    L 104 47 L 104 140
-    C 122 136, 140 126, 154 112
-    L 162 86 Z
+    M 33 182
+    C 20 230, 15 280, 18 330
+    C 22 370, 30 400, 42 428
+    L 247 428
+    L 247 182
+    Z
   "/>
 
-  <!-- Ear area left -->
-  <path class="head-region" data-region="back_ear_left" d="
-    M 38 88 C 36 110, 36 134, 42 156
-    L 56 162 C 54 146, 52 128, 52 112
-    C 52 100, 52 90, 50 84 Z
+  <!-- Mid-right (left occipital) -->
+  <path class="head-region" data-region="back_occipital_left" d="
+    M 462 182
+    C 475 230, 480 280, 477 330
+    C 473 370, 465 400, 452 428
+    L 247 428
+    L 247 182
+    Z
   "/>
 
-  <!-- Ear area right -->
-  <path class="head-region" data-region="back_ear_right" d="
-    M 162 88 C 164 110, 164 134, 158 156
-    L 144 162 C 146 146, 148 128, 148 112
-    C 148 100, 148 90, 150 84 Z
-  "/>
-
-  <!-- Neck left -->
-  <path class="head-region" data-region="back_neck_left" d="
-    M 42 156 C 50 172, 60 188, 72 202
-    L 96 210 L 96 140
-    C 78 136, 60 126, 46 112
-    L 40 134 Z
-  "/>
-
-  <!-- Neck center -->
-  <path class="head-region" data-region="back_neck_center" d="
-    M 96 140 C 98 140, 102 140, 104 140
-    L 104 210 C 102 211, 98 211, 96 210 Z
-  "/>
-
-  <!-- Neck right -->
+  <!-- Lower-left (right neck) -->
   <path class="head-region" data-region="back_neck_right" d="
-    M 158 156 C 150 172, 140 188, 128 202
-    L 104 210 L 104 140
-    C 122 136, 140 126, 154 112
-    L 160 134 Z
+    M 42 428
+    C 55 470, 75 510, 105 545
+    C 130 575, 165 600, 195 620
+    L 247 637
+    L 247 428
+    Z
+  "/>
+
+  <!-- Lower-right (left neck) -->
+  <path class="head-region" data-region="back_neck_left" d="
+    M 452 428
+    C 440 470, 420 510, 390 545
+    C 365 575, 330 600, 300 620
+    L 247 637
+    L 247 428
+    Z
   "/>
 
 </svg>

@@ -170,9 +170,8 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-md);
-}
-@media (min-width: 640px) {
-  .head-diagram { grid-template-columns: repeat(4, 1fr); }
+  max-width: 500px;
+  margin: 0 auto;
 }
 .head-diagram__panel {
   display: flex;
@@ -190,8 +189,8 @@
 .head-diagram__svg-wrapper {
   position: relative;
   width: 100%;
-  aspect-ratio: 200 / 280;
-  background: var(--bg-elevated);
+  aspect-ratio: 500 / 677;
+  background: #242737;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   overflow: hidden;
@@ -207,16 +206,15 @@
   pointer-events: none;
 }
 .head-region {
-  fill: rgba(255, 255, 255, 0.05);
-  stroke: rgba(255, 255, 255, 0.20);
-  stroke-width: 0.75;
+  fill: rgba(255, 255, 255, 0.0);
+  stroke: rgba(255, 255, 255, 0.15);
+  stroke-width: 1;
+  stroke-dasharray: 6 4;
   cursor: pointer;
   transition: fill 120ms ease, stroke 120ms ease;
 }
-.head-region:hover    { fill: rgba(124,106,255,0.28); stroke: rgba(124,106,255,0.75); stroke-width: 1.5; }
-.head-region.selected { fill: rgba(124,106,255,0.60); stroke: rgba(200,190,255,0.90); stroke-width: 1.5; }
-.head-outline { fill: none; stroke: rgba(255,255,255,0.30); stroke-width: 1.5; pointer-events: none; }
-.head-detail  { fill: none; stroke: rgba(255,255,255,0.14); stroke-width: 1;   pointer-events: none; }
+.head-region:hover    { fill: rgba(124,106,255,0.30); stroke: rgba(124,106,255,0.80); stroke-width: 2; stroke-dasharray: none; }
+.head-region.selected { fill: rgba(124,106,255,0.50); stroke: rgba(200,190,255,0.90); stroke-width: 2; stroke-dasharray: none; }
 
 /* View-mode: disable interaction on diagram */
 .head-diagram__svg-wrapper.view-mode { cursor: default; }

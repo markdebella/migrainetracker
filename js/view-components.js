@@ -163,25 +163,19 @@ function LogIncident() {
 
     // ── Head Diagram (merged) ──────────────────────────────────────────
     views: [
-      { key: 'front', label: 'Front' },
-      { key: 'left',  label: 'Left' },
-      { key: 'right', label: 'Right' },
-      { key: 'back',  label: 'Back' },
+      { key: 'front', label: 'Front', imgSrc: 'img/head-front.png', viewBox: '0 0 500 677' },
+      { key: 'back',  label: 'Back',  imgSrc: 'img/head-back.png',  viewBox: '0 0 500 637' },
     ],
-    svgContent: { front: '', back: '', left: '', right: '' },
+    svgContent: { front: '', back: '' },
     regionLabels: {
-      front_forehead_center:'Center Forehead', front_forehead_left:'Left Forehead', front_forehead_right:'Right Forehead',
-      front_temple_left:'Left Temple', front_temple_right:'Right Temple', front_eye_left:'Left Eye', front_eye_right:'Right Eye',
-      front_nose:'Nose/Sinus', front_cheek_left:'Left Cheek', front_cheek_right:'Right Cheek',
-      front_jaw_left:'Left Jaw', front_jaw_right:'Right Jaw', front_chin:'Chin', front_crown:'Crown',
-      back_crown:'Crown', back_occipital_left:'Left Occipital', back_occipital_right:'Right Occipital',
-      back_occipital_center:'Center Occipital', back_ear_left:'Left Ear', back_ear_right:'Right Ear',
-      back_neck_left:'Left Neck', back_neck_right:'Right Neck', back_neck_center:'Center Neck',
-      back_lower_skull:'Lower Skull (L)', back_lower_skull_right:'Lower Skull (R)',
-      left_crown:'Crown', left_forehead:'Forehead', left_temple:'Temple', left_eye:'Eye',
-      left_cheek:'Cheek', left_nose:'Nose', left_ear:'Ear', left_jaw:'Jaw/TMJ', left_occipital:'Occipital', left_neck:'Neck',
-      right_crown:'Crown', right_forehead:'Forehead', right_temple:'Temple', right_eye:'Eye',
-      right_cheek:'Cheek', right_nose:'Nose', right_ear:'Ear', right_jaw:'Jaw/TMJ', right_occipital:'Occipital', right_neck:'Neck',
+      front_forehead_left:'Left Forehead', front_forehead_right:'Right Forehead',
+      front_temple_left:'Left Temple', front_temple_right:'Right Temple',
+      front_face_left:'Left Face', front_face_right:'Right Face',
+      front_jaw_left:'Left Jaw', front_jaw_right:'Right Jaw',
+      front_neck_left:'Left Neck', front_neck_right:'Right Neck',
+      back_crown_left:'Left Crown', back_crown_right:'Right Crown',
+      back_occipital_left:'Left Occipital', back_occipital_right:'Right Occipital',
+      back_neck_left:'Left Neck', back_neck_right:'Right Neck',
     },
 
     async loadSVGs() {
@@ -201,6 +195,13 @@ function LogIncident() {
       }
     },
 
+    _ensurePainLoc(viewKey) {
+      if (!this.incident.painLocations[viewKey]) {
+        this.incident.painLocations[viewKey] = { regions: [], pins: [] };
+      }
+      return this.incident.painLocations[viewKey];
+    },
+
     handlePanelClick(event, viewKey) {
       if (!this.isEditing) return;
       if (event.target.classList.contains('head-region')) return;
@@ -208,12 +209,13 @@ function LogIncident() {
       const rect = wrapper.getBoundingClientRect();
       const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
       const y = Math.max(0, Math.min(1, (event.clientY - rect.top)  / rect.height));
-      if (this.incident) this.incident.painLocations[viewKey].pins.push({ x, y });
+      if (this.incident) this._ensurePainLoc(viewKey).pins.push({ x, y });
     },
 
     toggleRegion(viewKey, regionId) {
       if (!this.incident) return;
-      const regions = this.incident.painLocations[viewKey].regions;
+      const loc = this._ensurePainLoc(viewKey);
+      const regions = loc.regions;
       const idx = regions.indexOf(regionId);
       if (idx >= 0) regions.splice(idx, 1);
       else          regions.push(regionId);
@@ -221,7 +223,7 @@ function LogIncident() {
         document.querySelectorAll('.head-diagram__svg-wrapper').forEach((wrapper, i) => {
           const vk = this.views[i]?.key;
           if (!vk) return;
-          const sel = this.incident.painLocations[vk].regions;
+          const sel = this.incident.painLocations[vk]?.regions ?? [];
           wrapper.querySelectorAll('.head-region').forEach(p => {
             p.classList.toggle('selected', sel.includes(p.dataset.region));
           });
@@ -230,7 +232,7 @@ function LogIncident() {
     },
 
     removePin(viewKey, pinIdx) {
-      if (this.incident) this.incident.painLocations[viewKey].pins.splice(pinIdx, 1);
+      if (this.incident) this.incident.painLocations[viewKey]?.pins?.splice(pinIdx, 1);
     },
 
     regionLabel(rid) {
@@ -319,7 +321,7 @@ function LogIncident() {
         document.querySelectorAll('.head-diagram__svg-wrapper').forEach((wrapper, i) => {
           const vk = this.views[i]?.key;
           if (!vk || !this.incident) return;
-          const sel = this.incident.painLocations[vk].regions;
+          const sel = this.incident.painLocations[vk]?.regions ?? [];
           wrapper.querySelectorAll('.head-region').forEach(p => {
             p.classList.toggle('selected', sel.includes(p.dataset.region));
           });
