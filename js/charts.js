@@ -15,6 +15,24 @@ const Charts = (() => {
   Chart.defaults.font.family     = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
   Chart.defaults.font.size       = 12;
 
+  // Register crosshair plugin globally so it works on all charts
+  Chart.register({
+    id: 'verticalCrosshair',
+    afterDraw(chart) {
+      if (chart._crosshairX == null) return;
+      const { ctx, chartArea } = chart;
+      if (!chartArea) return;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(chart._crosshairX, chartArea.top);
+      ctx.lineTo(chart._crosshairX, chartArea.bottom);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(144,144,176,0.5)';
+      ctx.stroke();
+      ctx.restore();
+    },
+  });
+
   const gridColor   = 'rgba(42,42,66,0.8)';
   const accentColor = '#7c6aff';
 
@@ -141,23 +159,6 @@ const Charts = (() => {
       const painData = sorted.map(i => i.peakPainLevel ?? null);
       const durData  = sorted.map(i => i.durationMinutes ? i.durationMinutes / 60 : null);
 
-      // Crosshair vertical line plugin
-      const crosshairPlugin = {
-        id: 'crosshair',
-        afterDraw(chart) {
-          if (chart._crosshairX == null) return;
-          const { ctx, chartArea: { top, bottom } } = chart;
-          ctx.save();
-          ctx.beginPath();
-          ctx.moveTo(chart._crosshairX, top);
-          ctx.lineTo(chart._crosshairX, bottom);
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = 'rgba(144,144,176,0.5)';
-          ctx.stroke();
-          ctx.restore();
-        },
-      };
-
       const chart = new Chart(canvas, {
         type: 'line',
         data: {
@@ -243,7 +244,6 @@ const Charts = (() => {
             y2: { ...baseOptions.scales.y, min: 0, position: 'right', title: { display: true, text: 'Hours', color: '#9090b0' }, grid: { drawOnChartArea: false } },
           },
         },
-        plugins: [crosshairPlugin],
       });
 
       // Clear crosshair on mouse leave
