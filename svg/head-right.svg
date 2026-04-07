@@ -1,134 +1,155 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 280" role="img" aria-label="Right side head view">
 
-  <!-- ── Head outline (right profile, face points right) ───────────────── -->
+  <!-- ── Silhouette (face points right — mirror of left) ───────────────── -->
   <path class="head-outline" d="
-    M 88 22
-    C 108 20, 130 34, 138 56
-    C 144 70, 146 84, 146 94
-    C 146 104, 148 112, 152 122
-    C 156 132, 154 142, 146 150
-    C 140 156, 136 164, 132 174
-    C 128 184, 122 196, 108 208
-    L 108 250
-    L 80 250
-    L 80 208
-    C 68 196, 52 174, 48 148
-    C 44 122, 46 90, 52 62
-    C 60 32, 72 22, 88 22 Z
+    M 84 18
+    C 102 16, 124 28, 134 50
+    C 142 64, 144 80, 144 92
+    C 144 102, 148 112, 154 124
+    C 158 134, 152 146, 144 154
+    C 138 160, 134 170, 130 180
+    C 126 192, 120 204, 106 216
+    L 106 256
+    L 76 256
+    L 76 216
+    C 64 204, 48 176, 44 146
+    C 40 116, 42 82, 50 54
+    C 58 28, 70 18, 84 18 Z
   "/>
 
-  <!-- Ear (left side of image = right ear, visible in right profile) -->
+  <!-- Ear (left side of image = right ear) -->
   <path class="head-outline" d="
-    M 72 108
-    C 64 102, 50 104, 46 118
-    C 42 132, 46 152, 52 158
-    C 58 164, 66 162, 70 154
-    C 74 146, 74 132, 72 118
-    C 72 114, 72 110, 72 108 Z
+    M 68 106
+    C 62 99, 44 101, 40 117
+    C 36 133, 40 155, 47 162
+    C 54 169, 63 167, 68 157
+    C 73 147, 73 130, 68 117
+    C 68 113, 68 109, 68 106 Z
   "/>
-  <!-- Inner ear detail -->
-  <path class="head-detail" d="M 66 114 C 60 110, 52 112, 50 122 C 48 132, 52 146, 57 152"/>
+  <!-- Ear inner helix -->
+  <path class="head-detail" d="
+    M 62 114 C 56 108, 46 111, 43 124
+    C 40 137, 45 153, 52 158
+  "/>
+  <!-- Ear lobe crease -->
+  <path class="head-detail" d="M 65 153 C 62 160, 56 162, 52 158"/>
+  <!-- Tragus -->
+  <path class="head-detail" d="M 68 110 C 72 118, 72 128, 68 134"/>
 
   <!-- Hairline -->
-  <path class="head-detail" d="M 138 54 C 130 36, 112 22, 88 22 C 72 22, 58 30, 52 44"/>
+  <path class="head-detail" d="M 134 50 C 126 34, 108 18, 84 18 C 68 18, 56 26, 50 42"/>
 
   <!-- Eyebrow -->
-  <path class="head-detail" d="M 144 82 C 136 76, 124 74, 114 77"/>
+  <path class="head-detail" d="M 143 80 C 133 72, 120 70, 109 74"/>
 
-  <!-- Eye -->
-  <path class="head-detail" d="M 144 90 C 136 84, 124 84, 116 90 C 124 96, 136 96, 144 90 Z"/>
+  <!-- Eye — upper lid -->
+  <path class="head-detail" d="M 143 90 C 133 82, 118 82, 109 89"/>
+  <!-- Eye — lower lid -->
+  <path class="head-detail" d="M 143 90 C 133 98, 118 98, 109 89"/>
 
   <!-- Nose bridge and tip -->
-  <path class="head-detail" d="
-    M 142 92 C 144 104, 148 116, 152 124
-    C 148 130, 140 134, 134 130
-  "/>
+  <path class="head-detail" d="M 143 88 C 145 102, 149 114, 155 126"/>
+  <!-- Nostril / under-nose -->
+  <path class="head-detail" d="M 153 134 C 148 142, 138 146, 132 142"/>
 
-  <!-- Mouth -->
-  <path class="head-detail" d="M 142 158 C 136 154, 126 154, 122 158 C 126 163, 136 163, 142 158"/>
+  <!-- Philtrum -->
+  <path class="head-detail" d="M 142 154 C 138 160, 132 160, 130 154"/>
 
-  <!-- Neck -->
-  <path class="head-detail" d="M 108 248 C 100 252, 88 252, 80 248"/>
+  <!-- Upper lip -->
+  <path class="head-detail" d="M 144 160 C 138 154, 126 154, 122 160"/>
+  <!-- Lower lip -->
+  <path class="head-detail" d="M 142 164 C 136 174, 122 173, 118 164"/>
+
+  <!-- Chin -->
+  <path class="head-detail" d="M 132 182 C 127 188, 120 190, 116 186"/>
+
+  <!-- Jaw angle -->
+  <path class="head-detail" d="M 114 204 C 110 210, 106 214, 106 218"/>
+
+  <!-- Neck front line -->
+  <path class="head-detail" d="M 106 218 C 110 232, 112 246, 112 256"/>
+
+  <!-- Neck base -->
+  <path class="head-detail" d="M 112 255 C 102 260, 86 260, 76 255"/>
 
   <!-- ── Clickable regions ──────────────────────────────────────────────── -->
 
   <!-- Crown -->
   <path class="head-region" data-region="right_crown" d="
-    M 122 26 C 108 18, 84 18, 68 28
-    C 62 38, 58 52, 60 62
-    L 72 56 C 76 44, 86 32, 100 28
-    L 114 28 Z
+    M 120 22 C 106 14, 80 16, 64 28
+    C 58 38, 52 52, 54 66
+    L 70 58 C 74 44, 86 28, 102 22 Z
   "/>
 
   <!-- Forehead -->
   <path class="head-region" data-region="right_forehead" d="
-    M 138 54 C 134 38, 124 28, 112 26
-    L 100 28 C 88 32, 78 44, 74 56
-    L 74 90 C 86 88, 100 86, 112 82
-    L 128 78 Z
+    M 134 50 C 130 34, 120 22, 104 20
+    L 90 22 C 78 26, 68 40, 66 56
+    L 70 90 C 84 86, 100 84, 114 80
+    L 130 72 Z
   "/>
 
-  <!-- Temple (above ear, upper side) -->
+  <!-- Temple (above and in front of ear) -->
   <path class="head-region" data-region="right_temple" d="
-    M 74 56 L 60 62 C 52 76, 50 92, 52 108
-    L 72 108 C 72 98, 72 88, 74 78
-    L 74 56 Z
+    M 70 58 L 54 66 C 48 80, 46 96, 48 112
+    L 68 112 L 68 106 C 68 94, 68 80, 70 68
+    L 70 58 Z
   "/>
 
   <!-- Eye area -->
   <path class="head-region" data-region="right_eye" d="
-    M 146 76 C 138 70, 122 70, 110 74
-    L 110 106 C 122 106, 136 104, 146 100
-    L 148 88 Z
+    M 144 74 C 136 66, 120 64, 106 68
+    L 106 104 C 120 104, 136 102, 144 96
+    L 148 84 Z
   "/>
 
   <!-- Nose -->
   <path class="head-region" data-region="right_nose" d="
-    M 146 100 C 142 94, 136 90, 128 90
-    L 126 130 C 132 134, 142 132, 148 126
-    L 152 112 Z
+    M 144 88 C 140 80, 132 76, 122 78
+    L 124 138 C 132 146, 142 144, 150 134
+    L 156 116 Z
   "/>
 
   <!-- Ear -->
   <path class="head-region" data-region="right_ear" d="
-    M 72 108 C 72 108, 46 108, 46 108
-    C 42 122, 46 148, 52 158
-    C 58 164, 66 162, 70 154
-    C 74 146, 74 132, 72 118
-    C 72 114, 72 110, 72 108 Z
+    M 68 106
+    C 62 99, 40 101, 40 117
+    C 36 133, 40 155, 47 162
+    C 54 169, 63 167, 68 157
+    C 73 147, 73 130, 68 117
+    C 68 113, 68 109, 68 106 Z
   "/>
 
   <!-- Cheek -->
   <path class="head-region" data-region="right_cheek" d="
-    M 146 100 C 140 106, 134 112, 128 118
-    L 128 152 C 136 150, 144 144, 148 136
-    L 152 118 Z
+    M 144 96 C 140 106, 136 118, 132 130
+    L 132 154 C 140 150, 148 140, 154 128
+    L 156 110 Z
   "/>
 
   <!-- Jaw -->
   <path class="head-region" data-region="right_jaw" d="
-    M 128 118 C 122 126, 120 136, 122 150
-    L 122 166 C 124 174, 124 186, 118 198
-    L 104 204 C 108 196, 114 184, 118 172
-    L 120 156 C 118 146, 118 136, 122 126
-    L 128 118 Z
+    M 132 140 C 128 150, 126 162, 128 176
+    L 126 194 C 122 204, 116 214, 104 220
+    L 96 216 C 106 206, 114 194, 120 182
+    L 122 162 C 120 150, 120 140, 124 136 Z
   "/>
 
   <!-- Occipital (back of skull) -->
   <path class="head-region" data-region="right_occipital" d="
-    M 60 62 C 52 80, 48 100, 50 120
-    L 72 120 L 72 108
-    C 52 108, 52 90, 58 74
-    L 60 62 Z
+    M 68 58 L 54 66 C 46 86, 42 108, 44 132
+    L 68 132 L 68 112
+    C 48 112, 46 88, 52 68
+    L 54 66 Z
   "/>
 
   <!-- Neck -->
   <path class="head-region" data-region="right_neck" d="
-    M 118 198 C 112 206, 104 212, 104 220
-    L 104 250 L 80 250 L 80 220
-    C 80 212, 76 202, 70 194
-    L 82 200 C 88 210, 100 214, 112 208
-    L 118 198 Z
+    M 108 216 C 112 226, 114 240, 114 256
+    L 76 256 L 76 240
+    C 76 228, 80 218, 84 214
+    L 96 218 C 100 228, 104 234, 108 236
+    L 110 226 Z
   "/>
 
 </svg>
