@@ -1,0 +1,69 @@
+<!--
+  symptom-checklist component
+  Props (set on parent x-data):
+    listKey    — string key in CONFIG (e.g. 'symptoms', 'triggers')
+    selectedKey — property path on incident (e.g. 'incident.symptoms')
+    customKey   — property path for custom items (e.g. 'incident.customSymptoms' or settings key)
+    label      — display label string
+-->
+<div class="form-group"
+     x-data="SymptomChecklist(listKey, selectedItems, customItems)"
+     x-init="init()">
+  <label class="form-label" x-text="label"></label>
+  <div class="checkbox-group">
+    <template x-for="item in allItems" :key="item.id">
+      <button type="button"
+              :class="'checkbox-pill' + (selected.includes(item.id) ? ' selected' : '')"
+              :aria-pressed="selected.includes(item.id)"
+              @click="toggle(item.id)">
+        <span x-text="item.label"></span>
+      </button>
+    </template>
+  </div>
+  <div class="add-custom-input">
+    <input type="text"
+           class="form-input"
+           x-model="newItem"
+           :placeholder="'Add custom ' + (label || 'item') + '…'"
+           @keydown.enter.prevent="addCustom()"
+           maxlength="60"
+           style="flex:1">
+    <button type="button" class="btn btn-secondary btn-sm" @click="addCustom()" :disabled="!newItem.trim()">Add</button>
+  </div>
+</div>
+
+<script>
+function SymptomChecklist(listKey, selectedItems, customItems) {
+  return {
+    listKey,
+    selected:    selectedItems ?? [],
+    custom:      customItems   ?? [],
+    newItem: '',
+    allItems: [],
+
+    init() {
+      const base   = CONFIG[this.listKey] ?? [];
+      const custom = this.custom.map(c => typeof c === 'string'
+        ? { id: 'custom_' + c.toLowerCase().replace(/\s+/g,'_'), label: c }
+        : c);
+      this.allItems = [...base, ...custom];
+    },
+
+    toggle(id) {
+      const idx = this.selected.indexOf(id);
+      if (idx >= 0) this.selected.splice(idx, 1);
+      else          this.selected.push(id);
+    },
+
+    addCustom() {
+      const label = this.newItem.trim();
+      if (!label) return;
+      const id = 'custom_' + label.toLowerCase().replace(/\s+/g,'_') + '_' + Date.now();
+      this.custom.push(label);
+      this.allItems.push({ id, label });
+      this.selected.push(id);
+      this.newItem = '';
+    },
+  };
+}
+</script>

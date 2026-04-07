@@ -1,0 +1,48 @@
+<!--
+  incident-card — renders a single manifest entry as a tappable card.
+  Requires `entry` in scope (a manifest incident summary object).
+-->
+<div class="incident-card"
+     :class="entry.type?.replace('_','')"
+     role="button"
+     tabindex="0"
+     :aria-label="`View incident from ${Utils.formatDate(entry.startTime)}`"
+     @click="Router.go('log', {id: entry.id})"
+     @keydown.enter="Router.go('log', {id: entry.id})"
+     @keydown.space.prevent="Router.go('log', {id: entry.id})">
+
+  <div class="incident-card__main">
+    <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:4px">
+      <span class="incident-card__date" x-text="Utils.formatDate(entry.startTime)"></span>
+      <span class="type-badge"
+            :class="entry.type?.includes('thunderclap') ? 'thunderclap' : entry.type"
+            x-text="(CONFIG.attackTypes.find(t=>t.id===entry.type)?.label ?? entry.type ?? 'Unknown').replace('_',' ')">
+      </span>
+      <span x-show="entry.isActive"
+            style="background:var(--accent);color:#fff;font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:var(--radius-full);text-transform:uppercase;letter-spacing:.05em">
+        Active
+      </span>
+    </div>
+    <div class="incident-card__meta">
+      <span x-show="!entry.isActive" x-text="Utils.formatDuration(entry.durationMinutes)"></span>
+      <span x-show="entry.isActive" x-text="'Started ' + Utils.formatTime(entry.startTime)"></span>
+    </div>
+    <div class="pain-bar incident-card__pain-bar" style="margin-top:6px" x-show="entry.peakPainLevel">
+      <div class="pain-bar__fill"
+           :style="`width:${(entry.peakPainLevel/10)*100}%;background:var(--pain-${entry.peakPainLevel})`">
+      </div>
+    </div>
+  </div>
+
+  <div class="incident-card__right">
+    <span class="incident-card__pain"
+          x-show="entry.peakPainLevel"
+          :style="`color:var(--pain-${entry.peakPainLevel})`"
+          x-text="entry.peakPainLevel">
+    </span>
+    <span style="color:var(--text-muted);font-size:0.8rem" x-show="!entry.peakPainLevel">—</span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M9 18l6-6-6-6"/>
+    </svg>
+  </div>
+</div>

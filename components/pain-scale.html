@@ -1,0 +1,27 @@
+<!--
+  pain-scale component
+  Usage: include this HTML inside an Alpine component that has a `painLevel` property.
+  The buttons set `painLevel` to 1–10.
+  Pass `painLevel` as the x-data binding in the parent.
+-->
+<div class="form-group" x-data="{
+  labels: { 1:'Minimal',2:'Minimal',3:'Mild',4:'Mild',5:'Moderate',6:'Moderate',7:'Severe',8:'Severe',9:'Worst',10:'Worst' }
+}">
+  <label class="form-label">Pain Level</label>
+  <div class="pain-scale" role="group" aria-label="Pain level selector">
+    <template x-for="n in [1,2,3,4,5,6,7,8,9,10]" :key="n">
+      <button type="button"
+              :class="`pain-scale__btn pain-btn-${n}` + (painLevel === n ? ' selected' : '')"
+              :aria-label="`Pain level ${n}: ${labels[n]}`"
+              :aria-pressed="painLevel === n"
+              @click="painLevel = n">
+        <span class="num" x-text="n"></span>
+        <span class="lbl" x-text="labels[n]"></span>
+      </button>
+    </template>
+  </div>
+  <p class="form-hint" x-show="painLevel">
+    Selected: <strong x-text="painLevel"></strong>
+    — <span x-text="labels[painLevel]"></span>
+  </p>
+</div>

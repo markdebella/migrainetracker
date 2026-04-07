@@ -1,0 +1,491 @@
+<div x-data="LogIncident()" x-init="init()">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <button class="back-btn" @click="Router.go('dashboard')" aria-label="Back to dashboard">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+    <h1 x-text="isNew ? 'Log Headache' : 'Edit Incident'"></h1>
+    <div style="margin-left:auto;display:flex;gap:var(--space-sm)" x-show="!isNew">
+      <button class="btn btn-secondary btn-sm"
+              @click="Router.go('check-in', {id: incident.id})"
+              x-show="incident.isActive">
+        + Check-in
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  <div class="empty-state" x-show="loading">
+    <div class="spinner" style="margin:0 auto"></div>
+    <p>Loading…</p>
+  </div>
+
+  <div x-show="!loading">
+
+    <!-- ── Attack Type ──────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)">
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label" for="attack-type">Attack Type</label>
+        <div style="display:flex;flex-wrap:wrap;gap:var(--space-sm)">
+          <template x-for="t in allTypes" :key="t.id">
+            <button type="button"
+                    :class="'checkbox-pill' + (incident.type === t.id ? ' selected' : '')"
+                    :aria-pressed="incident.type === t.id"
+                    @click="incident.type = t.id; incident.customTypeName = null">
+              <span x-text="t.label"></span>
+            </button>
+          </template>
+        </div>
+        <!-- Custom type input -->
+        <div class="add-custom-input" style="margin-top:var(--space-sm)">
+          <input type="text" class="form-input" x-model="customTypeInput"
+                 placeholder="Custom type…" maxlength="60" style="flex:1"
+                 @keydown.enter.prevent="addCustomType()">
+          <button type="button" class="btn btn-secondary btn-sm"
+                  @click="addCustomType()" :disabled="!customTypeInput.trim()">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Time Range ──────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)">
+      <div class="card__header">
+        <span class="card__title">Time</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+        <div class="form-group" style="margin:0">
+          <label class="form-label" for="start-time">Start</label>
+          <input type="datetime-local" id="start-time" class="form-input"
+                 :value="toInput(incident.startTime)"
+                 @change="incident.startTime = new Date($event.target.value).toISOString()">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label" for="end-time">End</label>
+          <input type="datetime-local" id="end-time" class="form-input"
+                 :value="incident.endTime ? toInput(incident.endTime) : ''"
+                 @change="incident.endTime = $event.target.value ? new Date($event.target.value).toISOString() : null"
+                 :placeholder="incident.isActive ? 'Still ongoing' : ''">
+          <p class="form-hint" x-show="!incident.endTime">Leave blank if still ongoing</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Head Diagram ────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)">
+      <div>
+        <label class="form-label">Pain Location</label>
+        <p class="form-hint" style="margin-bottom:var(--space-md)">
+          Tap a shaded region to select it. Tap an empty area to drop a precise pain pin.
+          Tap a pin to remove it.
+        </p>
+        <div class="head-diagram">
+          <template x-for="view in views" :key="view.key">
+            <div class="head-diagram__panel">
+              <span class="head-diagram__label" x-text="view.label"></span>
+              <div class="head-diagram__svg-wrapper"
+                   @click="handlePanelClick($event, view.key)">
+                <div x-html="svgContent[view.key]"
+                     style="width:100%;height:100%;position:absolute;inset:0"
+                     @click.capture="onSvgClick($event, view.key)">
+                </div>
+                <svg :viewBox="'0 0 200 280'"
+                     style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
+                  <template x-for="(pin, idx) in incident.painLocations[view.key].pins" :key="idx">
+                    <circle class="pain-pin"
+                            :cx="pin.x * 200" :cy="pin.y * 280" r="5"
+                            style="pointer-events:all;cursor:pointer"
+                            @click.stop="removePin(view.key, idx)"
+                            title="Tap to remove pin"/>
+                  </template>
+                </svg>
+              </div>
+              <!-- Selected region chips -->
+              <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px"
+                   x-show="incident.painLocations[view.key].regions.length">
+                <template x-for="rid in incident.painLocations[view.key].regions" :key="rid">
+                  <span style="background:var(--accent-dim);color:var(--accent);font-size:0.7rem;padding:2px 8px;border-radius:var(--radius-full);display:inline-flex;align-items:center;gap:4px">
+                    <span x-text="regionLabel(rid)"></span>
+                    <button type="button"
+                            style="background:none;border:none;color:inherit;cursor:pointer;padding:0;line-height:1"
+                            @click="toggleRegion(view.key, rid)">&times;</button>
+                  </span>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Premonitory Symptoms ───────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)">
+      <div class="card__header"><span class="card__title">Warning Signs (Before Attack)</span></div>
+      <div class="checkbox-group">
+        <template x-for="item in CONFIG.premonitorySymptoms" :key="item.id">
+          <button type="button"
+                  :class="'checkbox-pill' + (incident.premonitorySymptoms.includes(item.id) ? ' selected' : '')"
+                  :aria-pressed="incident.premonitorySymptoms.includes(item.id)"
+                  @click="toggle(incident.premonitorySymptoms, item.id)">
+            <span x-text="item.label"></span>
+          </button>
+        </template>
+        <template x-for="item in customProdromeItems" :key="item.id">
+          <button type="button"
+                  :class="'checkbox-pill' + (incident.premonitorySymptoms.includes(item.id) ? ' selected' : '')"
+                  :aria-pressed="incident.premonitorySymptoms.includes(item.id)"
+                  @click="toggle(incident.premonitorySymptoms, item.id)">
+            <span x-text="item.label"></span>
+          </button>
+        </template>
+      </div>
+      <div class="add-custom-input">
+        <input type="text" class="form-input" x-model="newProdrome"
+               placeholder="Add custom warning sign…" maxlength="60" style="flex:1"
+               @keydown.enter.prevent="addCustom('premonitorySymptoms', 'newProdrome', customProdromeItems)">
+        <button type="button" class="btn btn-secondary btn-sm"
+                @click="addCustom('premonitorySymptoms', 'newProdrome', customProdromeItems)"
+                :disabled="!newProdrome.trim()">Add</button>
+      </div>
+    </div>
+
+    <!-- ── Symptoms ───────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)">
+      <div class="card__header"><span class="card__title">Symptoms</span></div>
+      <div class="checkbox-group">
+        <template x-for="item in CONFIG.symptoms" :key="item.id">
+          <button type="button"
+                  :class="'checkbox-pill' + (incident.symptoms.includes(item.id) ? ' selected' : '')"
+                  :aria-pressed="incident.symptoms.includes(item.id)"
+                  @click="toggle(incident.symptoms, item.id)">
+            <span x-text="item.label"></span>
+          </button>
+        </template>
+        <template x-for="item in customSymptomItems" :key="item.id">
+          <button type="button"
+                  :class="'checkbox-pill' + (incident.symptoms.includes(item.id) ? ' selected' : '')"
+                  :aria-pressed="incident.symptoms.includes(item.id)"
+                  @click="toggle(incident.symptoms, item.id)">
+            <span x-text="item.label"></span>
+          </button>
+        </template>
+      </div>
+      <div class="add-custom-input">
+        <input type="text" class="form-input" x-model="newSymptom"
+               placeholder="Add custom symptom…" maxlength="60" style="flex:1"
+               @keydown.enter.prevent="addCustom('symptoms', 'newSymptom', customSymptomItems)">
+        <button type="button" class="btn btn-secondary btn-sm"
+                @click="addCustom('symptoms', 'newSymptom', customSymptomItems)"
+                :disabled="!newSymptom.trim()">Add</button>
+      </div>
+    </div>
+
+    <!-- ── Triggers ───────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)">
+      <div class="card__header"><span class="card__title">Potential Triggers</span></div>
+      <div class="checkbox-group">
+        <template x-for="item in CONFIG.triggers" :key="item.id">
+          <button type="button"
+                  :class="'checkbox-pill' + (incident.triggers.includes(item.id) ? ' selected' : '')"
+                  :aria-pressed="incident.triggers.includes(item.id)"
+                  @click="toggle(incident.triggers, item.id)">
+            <span x-text="item.label"></span>
+          </button>
+        </template>
+        <template x-for="item in customTriggerItems" :key="item.id">
+          <button type="button"
+                  :class="'checkbox-pill' + (incident.triggers.includes(item.id) ? ' selected' : '')"
+                  :aria-pressed="incident.triggers.includes(item.id)"
+                  @click="toggle(incident.triggers, item.id)">
+            <span x-text="item.label"></span>
+          </button>
+        </template>
+      </div>
+      <div class="add-custom-input">
+        <input type="text" class="form-input" x-model="newTrigger"
+               placeholder="Add custom trigger…" maxlength="60" style="flex:1"
+               @keydown.enter.prevent="addCustom('triggers', 'newTrigger', customTriggerItems)">
+        <button type="button" class="btn btn-secondary btn-sm"
+                @click="addCustom('triggers', 'newTrigger', customTriggerItems)"
+                :disabled="!newTrigger.trim()">Add</button>
+      </div>
+    </div>
+
+    <!-- ── Affected Activities ────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)">
+      <div class="card__header"><span class="card__title">Affected Activities</span></div>
+      <div class="checkbox-group">
+        <template x-for="item in CONFIG.affectedActivities" :key="item.id">
+          <button type="button"
+                  :class="'checkbox-pill' + (incident.affectedActivities.includes(item.id) ? ' selected' : '')"
+                  :aria-pressed="incident.affectedActivities.includes(item.id)"
+                  @click="toggle(incident.affectedActivities, item.id)">
+            <span x-text="item.label"></span>
+          </button>
+        </template>
+      </div>
+    </div>
+
+    <!-- ── Notes ─────────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)">
+      <div class="card__header"><span class="card__title">Notes</span></div>
+      <textarea class="form-textarea"
+                x-model="incident.notes"
+                placeholder="Describe how this headache felt, what made it better or worse…"
+                rows="4"
+                @input="autoSave()">
+      </textarea>
+    </div>
+
+    <!-- ── Location ──────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)">
+      <div class="card__header"><span class="card__title">Location (optional)</span></div>
+      <div style="display:flex;align-items:center;gap:var(--space-md);flex-wrap:wrap">
+        <button type="button" class="btn btn-secondary btn-sm"
+                @click="captureLocation()"
+                :disabled="locationLoading">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          <span x-text="locationLoading ? 'Getting location…' : 'Capture Location'"></span>
+        </button>
+        <span class="form-hint" x-show="incident.location.lat"
+              x-text="`${incident.location.lat.toFixed(4)}, ${incident.location.lon.toFixed(4)}`">
+        </span>
+        <button type="button" class="btn btn-ghost btn-sm"
+                x-show="incident.location.lat"
+                @click="incident.location = {lat:null,lon:null,accuracy:null}">
+          Clear
+        </button>
+      </div>
+      <p class="form-hint" style="margin-top:var(--space-xs)">
+        Stored in your Drive only — not shared with anyone.
+      </p>
+    </div>
+
+    <!-- ── Check-ins ──────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)" x-show="incident.checkIns?.length">
+      <div class="card__header">
+        <span class="card__title">Check-in Timeline</span>
+        <button class="btn btn-secondary btn-sm"
+                @click="Router.go('check-in', {id: incident.id})">
+          + Add Check-in
+        </button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:var(--space-md)">
+        <template x-for="(ci, idx) in incident.checkIns" :key="ci.id">
+          <div style="display:flex;gap:var(--space-md);padding-bottom:var(--space-md);border-bottom:1px solid var(--border)"
+               :style="idx === incident.checkIns.length - 1 ? 'border-bottom:none;padding-bottom:0' : ''">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+              <div style="width:10px;height:10px;border-radius:50%;background:var(--pain-${ci.painLevel ?? 5} ?? var(--accent));"
+                   :style="`background:var(--pain-${ci.painLevel ?? 5})`"></div>
+              <div style="width:2px;flex:1;background:var(--border)" x-show="idx < incident.checkIns.length - 1"></div>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:4px;flex-wrap:wrap">
+                <span style="font-size:0.82rem;color:var(--text-muted)" x-text="Utils.formatDate(ci.timestamp) + ' ' + Utils.formatTime(ci.timestamp)"></span>
+                <span class="type-badge"
+                      x-show="ci.painLevel"
+                      :style="`background:rgba(var(--pain-${ci.painLevel}-rgb,124,106,255),.12);color:var(--pain-${ci.painLevel});border-color:var(--pain-${ci.painLevel})`"
+                      x-text="`Pain: ${ci.painLevel}`">
+                </span>
+              </div>
+              <div x-show="ci.treatments?.length" style="margin-bottom:4px">
+                <template x-for="t in ci.treatments" :key="t.id">
+                  <span style="font-size:0.8rem;color:var(--text-secondary);margin-right:var(--space-sm)">
+                    <span x-text="t.name"></span>
+                    <span x-show="t.effectiveness"
+                          :style="effectivenessColor(t.effectiveness)"
+                          x-text="' · ' + effectivenessLabel(t.effectiveness)">
+                    </span>
+                  </span>
+                </template>
+              </div>
+              <p style="font-size:0.85rem;color:var(--text-secondary)" x-show="ci.note" x-text="ci.note"></p>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- ── Action buttons ─────────────────────────────────────────────── -->
+    <div style="display:flex;flex-direction:column;gap:var(--space-sm)">
+      <!-- Active attack: Start / Check-in -->
+      <div x-show="isNew" style="display:flex;gap:var(--space-sm);flex-wrap:wrap">
+        <button class="btn btn-primary" style="flex:1" @click="startAttack()" :disabled="saving">
+          <span x-show="!saving">Start Attack (ongoing)</span>
+          <span x-show="saving">Saving…</span>
+        </button>
+        <button class="btn btn-secondary" style="flex:1" @click="saveAndClose()" :disabled="saving">
+          Save as Past Incident
+        </button>
+      </div>
+
+      <!-- Existing incident -->
+      <div x-show="!isNew" style="display:flex;gap:var(--space-sm);flex-wrap:wrap">
+        <button class="btn btn-primary" style="flex:1" @click="saveIncident()" :disabled="saving">
+          <span x-show="!saving">Save Changes</span>
+          <span x-show="saving">Saving…</span>
+        </button>
+        <button class="btn btn-danger" @click="confirmDelete()" :disabled="saving">Delete</button>
+      </div>
+      <button class="btn btn-secondary btn-block"
+              @click="Router.go('check-in', {id: incident.id})"
+              x-show="!isNew">
+        + Add Check-in
+      </button>
+    </div>
+
+  </div><!-- /!loading -->
+</div>
+
+<script>
+function LogIncident() {
+  return {
+    incident: null,
+    isNew: true,
+    loading: true,
+    saving: false,
+    locationLoading: false,
+    customTypeInput: '',
+    newProdrome: '',
+    newSymptom: '',
+    newTrigger: '',
+    customProdromeItems: [],
+    customSymptomItems: [],
+    customTriggerItems: [],
+
+    get allTypes() {
+      const base    = [...CONFIG.attackTypes];
+      const custom  = (Alpine.store('data').settings?.customAttackTypes ?? [])
+        .map(c => ({ id: 'custom_' + c.toLowerCase().replace(/\s+/g,'_'), label: c }));
+      return [...base, ...custom];
+    },
+
+    async init() {
+      const params = Alpine.store('ui').routeParams;
+      const id     = params?.id;
+      this.isNew   = !id || id === 'new';
+
+      if (this.isNew) {
+        this.incident = IncidentFactory.blank();
+        this.loading  = false;
+      } else {
+        try {
+          this.incident = await Drive.loadIncident(id);
+        } catch {
+          Toast.error('Could not load incident.');
+          Router.go('dashboard');
+          return;
+        } finally {
+          this.loading = false;
+        }
+      }
+    },
+
+    toInput(iso) { return Utils.toInputDateTime(iso); },
+
+    toggle(arr, id) {
+      const idx = arr.indexOf(id);
+      idx >= 0 ? arr.splice(idx, 1) : arr.push(id);
+    },
+
+    addCustom(incidentProp, inputProp, customArray) {
+      const label = this[inputProp].trim();
+      if (!label) return;
+      const id = 'custom_' + label.toLowerCase().replace(/\s+/g,'_') + '_' + Date.now();
+      customArray.push({ id, label });
+      this.incident[incidentProp].push(id);
+      this[inputProp] = '';
+    },
+
+    addCustomType() {
+      const label = this.customTypeInput.trim();
+      if (!label) return;
+      // Save to settings
+      const settings = Alpine.store('data').settings;
+      if (!settings.customAttackTypes.includes(label)) {
+        settings.customAttackTypes.push(label);
+        Drive.saveSettings(settings);
+      }
+      const id = 'custom_' + label.toLowerCase().replace(/\s+/g,'_');
+      this.incident.type = id;
+      this.customTypeInput = '';
+    },
+
+    autoSave() { AutoSave.queue(this.incident); },
+
+    async captureLocation() {
+      if (!navigator.geolocation) {
+        Toast.info('Geolocation is not supported by your browser.');
+        return;
+      }
+      this.locationLoading = true;
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          this.incident.location = {
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
+            accuracy: pos.coords.accuracy,
+          };
+          this.locationLoading = false;
+        },
+        () => {
+          Toast.error('Could not get location. Check browser permissions.');
+          this.locationLoading = false;
+        }
+      );
+    },
+
+    async startAttack() {
+      this.saving = true;
+      this.incident.isActive = true;
+      this.incident.endTime  = null;
+      try {
+        await App.saveIncident(this.incident);
+        Notifications.startPrompt();
+        Router.go('dashboard');
+      } finally {
+        this.saving = false;
+      }
+    },
+
+    async saveAndClose() {
+      this.saving = true;
+      try {
+        await App.saveIncident(this.incident, { close: true });
+        Router.go('dashboard');
+      } finally {
+        this.saving = false;
+      }
+    },
+
+    async saveIncident() {
+      this.saving = true;
+      try {
+        await App.saveIncident(this.incident);
+        Toast.success('Saved.');
+      } finally {
+        this.saving = false;
+      }
+    },
+
+    async confirmDelete() {
+      if (!confirm('Delete this incident? This cannot be undone.')) return;
+      await App.deleteIncident(this.incident.id);
+    },
+
+    effectivenessLabel(e) {
+      return { helpful:'Helped', somewhat_helpful:'Somewhat', unhelpful:"Didn't help", unsure:'Unsure' }[e] ?? e;
+    },
+    effectivenessColor(e) {
+      const m = { helpful:'color:var(--success)', somewhat_helpful:'color:var(--warning)', unhelpful:'color:var(--danger)', unsure:'color:var(--info)' };
+      return m[e] ?? '';
+    },
+
+    // HeadDiagram is inlined directly in the template above via x-data="HeadDiagram()"
+  };
+}
+</script>

@@ -1,0 +1,261 @@
+<div x-data="CheckIn()" x-init="init()">
+
+  <div class="page-header">
+    <button class="back-btn" @click="goBack()" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+    <div>
+      <h1>Check-in</h1>
+      <p style="font-size:0.82rem;color:var(--text-muted)" x-show="incident"
+         x-text="'Incident: ' + Utils.formatDate(incident?.startTime)"></p>
+    </div>
+  </div>
+
+  <div class="empty-state" x-show="loading">
+    <div class="spinner" style="margin:0 auto"></div>
+  </div>
+
+  <div x-show="!loading">
+
+    <!-- ── Timestamp ──────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)">
+      <div class="card__header"><span class="card__title">Time of Check-in</span></div>
+      <input type="datetime-local" class="form-input"
+             :value="toInput(checkIn.timestamp)"
+             @change="checkIn.timestamp = new Date($event.target.value).toISOString()">
+    </div>
+
+    <!-- ── Pain Scale ─────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)">
+      <label class="form-label">Pain Level Right Now</label>
+      <div class="pain-scale" role="group" aria-label="Pain level selector"
+           x-data="{ labels: { 1:'Minimal',2:'Minimal',3:'Mild',4:'Mild',5:'Moderate',6:'Moderate',7:'Severe',8:'Severe',9:'Worst',10:'Worst' } }">
+        <template x-for="n in [1,2,3,4,5,6,7,8,9,10]" :key="n">
+          <button type="button"
+                  :class="`pain-scale__btn pain-btn-${n}` + (checkIn.painLevel === n ? ' selected' : '')"
+                  :aria-label="`Pain ${n}: ${labels[n]}`"
+                  :aria-pressed="checkIn.painLevel === n"
+                  @click="checkIn.painLevel = n">
+            <span class="num" x-text="n"></span>
+            <span class="lbl" x-text="labels[n]"></span>
+          </button>
+        </template>
+      </div>
+      <p class="form-hint" x-show="checkIn.painLevel">
+        <strong x-text="checkIn.painLevel"></strong>
+        — <span x-text="{ 1:'Minimal',2:'Minimal',3:'Mild',4:'Mild',5:'Moderate',6:'Moderate',7:'Severe',8:'Severe',9:'Worst',10:'Worst' }[checkIn.painLevel]"></span>
+      </p>
+    </div>
+
+    <!-- ── Symptoms at this moment ────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)">
+      <div class="card__header"><span class="card__title">Symptoms Right Now</span></div>
+      <div class="checkbox-group">
+        <template x-for="item in CONFIG.symptoms" :key="item.id">
+          <button type="button"
+                  :class="'checkbox-pill' + (checkIn.symptoms.includes(item.id) ? ' selected' : '')"
+                  :aria-pressed="checkIn.symptoms.includes(item.id)"
+                  @click="toggleSymptom(item.id)">
+            <span x-text="item.label"></span>
+          </button>
+        </template>
+        <template x-for="item in customSymptoms" :key="item.id">
+          <button type="button"
+                  :class="'checkbox-pill' + (checkIn.symptoms.includes(item.id) ? ' selected' : '')"
+                  :aria-pressed="checkIn.symptoms.includes(item.id)"
+                  @click="toggleSymptom(item.id)">
+            <span x-text="item.label"></span>
+          </button>
+        </template>
+      </div>
+    </div>
+
+    <!-- ── Treatments ─────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)">
+      <div class="card__header"><span class="card__title">Treatments Tried at This Check-in</span></div>
+
+      <!-- Already added -->
+      <div style="display:flex;flex-direction:column;gap:var(--space-sm);margin-bottom:var(--space-md)"
+           x-show="checkIn.treatments.length">
+        <template x-for="(t, idx) in checkIn.treatments" :key="t.id + idx">
+          <div class="treatment-item">
+            <span class="treatment-item__name" x-text="t.name"></span>
+            <div class="effectiveness-group">
+              <button type="button"
+                      :class="'effectiveness-btn' + (t.effectiveness==='helpful' ? ' helpful' : '')"
+                      @click="t.effectiveness = t.effectiveness==='helpful' ? null : 'helpful'"
+                      :aria-pressed="t.effectiveness==='helpful'">✓ Helped</button>
+              <button type="button"
+                      :class="'effectiveness-btn' + (t.effectiveness==='somewhat_helpful' ? ' somewhat' : '')"
+                      @click="t.effectiveness = t.effectiveness==='somewhat_helpful' ? null : 'somewhat_helpful'"
+                      :aria-pressed="t.effectiveness==='somewhat_helpful'">~ Some</button>
+              <button type="button"
+                      :class="'effectiveness-btn' + (t.effectiveness==='unhelpful' ? ' unhelpful' : '')"
+                      @click="t.effectiveness = t.effectiveness==='unhelpful' ? null : 'unhelpful'"
+                      :aria-pressed="t.effectiveness==='unhelpful'">✗ No</button>
+              <button type="button"
+                      :class="'effectiveness-btn' + (t.effectiveness==='unsure' ? ' unsure' : '')"
+                      @click="t.effectiveness = t.effectiveness==='unsure' ? null : 'unsure'"
+                      :aria-pressed="t.effectiveness==='unsure'">? Unsure</button>
+            </div>
+            <button type="button" class="treatment-item__remove" @click="checkIn.treatments.splice(idx,1)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </template>
+      </div>
+
+      <!-- Medications -->
+      <p class="form-hint" style="margin-bottom:var(--space-sm)">Medication:</p>
+      <div class="checkbox-group" style="margin-bottom:var(--space-md)">
+        <template x-for="med in CONFIG.medications" :key="med.id">
+          <button type="button"
+                  class="checkbox-pill"
+                  :class="{ selected: treatmentAdded(med.id) }"
+                  @click="addTreatment(med.id, med.label, 'medication')"
+                  :disabled="treatmentAdded(med.id)">
+            <span x-text="med.label"></span>
+          </button>
+        </template>
+      </div>
+
+      <!-- Non-drug -->
+      <p class="form-hint" style="margin-bottom:var(--space-sm)">Non-drug method:</p>
+      <div class="checkbox-group" style="margin-bottom:var(--space-md)">
+        <template x-for="m in CONFIG.nonDrugMethods" :key="m.id">
+          <button type="button"
+                  class="checkbox-pill"
+                  :class="{ selected: treatmentAdded(m.id) }"
+                  @click="addTreatment(m.id, m.label, 'non_drug')"
+                  :disabled="treatmentAdded(m.id)">
+            <span x-text="m.label"></span>
+          </button>
+        </template>
+      </div>
+
+      <!-- Custom -->
+      <div class="add-custom-input">
+        <input type="text" class="form-input" x-model="customTreatment"
+               placeholder="Other treatment…" maxlength="80" style="flex:1"
+               @keydown.enter.prevent="addCustomTreatment()">
+        <button type="button" class="btn btn-secondary btn-sm"
+                @click="addCustomTreatment()" :disabled="!customTreatment.trim()">Add</button>
+      </div>
+    </div>
+
+    <!-- ── Note ───────────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-lg)">
+      <div class="card__header"><span class="card__title">Note</span></div>
+      <textarea class="form-textarea"
+                x-model="checkIn.note"
+                placeholder="What's happening right now? How are you feeling?"
+                rows="3">
+      </textarea>
+    </div>
+
+    <!-- ── Submit ─────────────────────────────────────────────────────── -->
+    <div style="display:flex;gap:var(--space-sm)">
+      <button class="btn btn-primary" style="flex:1" @click="submit()" :disabled="saving || !checkIn.painLevel">
+        <span x-show="!saving">Save Check-in</span>
+        <span x-show="saving">Saving…</span>
+      </button>
+      <button class="btn btn-secondary" @click="goBack()">Cancel</button>
+    </div>
+    <p class="form-hint" x-show="!checkIn.painLevel" style="text-align:center;margin-top:var(--space-sm)">
+      Select a pain level to save.
+    </p>
+  </div>
+</div>
+
+<script>
+function CheckIn() {
+  return {
+    incident: null,
+    loading: true,
+    saving: false,
+    customTreatment: '',
+    customSymptoms: [],
+    checkIn: {
+      id: '',
+      timestamp: '',
+      painLevel: null,
+      symptoms: [],
+      treatments: [],
+      note: '',
+    },
+
+    async init() {
+      const id = Alpine.store('ui').routeParams?.id;
+      if (!id) { Router.go('dashboard'); return; }
+
+      this.checkIn.id        = Utils.uuid();
+      this.checkIn.timestamp = Utils.nowISO();
+
+      try {
+        this.incident = await Drive.loadIncident(id);
+        // Pre-select symptoms from the last check-in as a convenience
+        const last = this.incident.checkIns?.at(-1);
+        if (last?.symptoms) this.checkIn.symptoms = [...last.symptoms];
+      } catch {
+        Toast.error('Could not load incident.');
+        Router.go('dashboard');
+        return;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    toInput(iso) { return Utils.toInputDateTime(iso); },
+
+    toggleSymptom(id) {
+      const idx = this.checkIn.symptoms.indexOf(id);
+      idx >= 0 ? this.checkIn.symptoms.splice(idx, 1) : this.checkIn.symptoms.push(id);
+    },
+
+    treatmentAdded(id) {
+      return this.checkIn.treatments.some(t => t.id === id);
+    },
+
+    addTreatment(id, name, type) {
+      if (this.treatmentAdded(id)) return;
+      this.checkIn.treatments.push({ id, name, type, effectiveness: null });
+    },
+
+    addCustomTreatment() {
+      const name = this.customTreatment.trim();
+      if (!name) return;
+      this.checkIn.treatments.push({ id: 'custom_' + Date.now(), name, type: 'custom', effectiveness: null });
+      this.customTreatment = '';
+    },
+
+    goBack() {
+      const id = Alpine.store('ui').routeParams?.id;
+      if (id) Router.go('log', { id });
+      else    Router.go('dashboard');
+    },
+
+    async submit() {
+      if (!this.checkIn.painLevel) return;
+      this.saving = true;
+      try {
+        this.incident.checkIns = this.incident.checkIns ?? [];
+        this.incident.checkIns.push(this.checkIn);
+
+        // Update peakPainLevel
+        const levels = this.incident.checkIns.map(c => c.painLevel).filter(Boolean);
+        this.incident.peakPainLevel = Math.max(...levels);
+
+        await App.saveIncident(this.incident);
+        Toast.success('Check-in saved.');
+        Router.go('log', { id: this.incident.id });
+      } catch {
+        Toast.error('Could not save check-in.');
+      } finally {
+        this.saving = false;
+      }
+    },
+  };
+}
+</script>

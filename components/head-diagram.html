@@ -1,0 +1,196 @@
+<!--
+  head-diagram component
+  Expects parent Alpine data to have:
+    incident.painLocations = {
+      front: { regions: [], pins: [] },
+      back:  { regions: [], pins: [] },
+      left:  { regions: [], pins: [] },
+      right: { regions: [], pins: [] },
+    }
+-->
+<div x-data="HeadDiagram()" x-init="init()" class="form-group">
+  <label class="form-label">Pain Location</label>
+  <p class="form-hint" style="margin-bottom:var(--space-md)">
+    Tap a shaded region to select it. Tap anywhere else to drop a precise pin.
+    Tap a pin to remove it.
+  </p>
+
+  <div class="head-diagram">
+    <template x-for="view in views" :key="view.key">
+      <div class="head-diagram__panel">
+        <span class="head-diagram__label" x-text="view.label"></span>
+        <div class="head-diagram__svg-wrapper"
+             @click="handlePanelClick($event, view.key)"
+             :title="`Click to mark pain on ${view.label} view`">
+
+          <!-- SVG loaded from file -->
+          <div x-html="svgContent[view.key]" style="width:100%;height:100%;position:absolute;inset:0"></div>
+
+          <!-- Pin overlay (rendered on top, pointer-events:none on the container but pins are clickable) -->
+          <svg class="pin-overlay" :viewBox="'0 0 200 280'"
+               style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
+            <template x-for="(pin, idx) in incident.painLocations[view.key].pins" :key="idx">
+              <circle class="pain-pin"
+                      :cx="pin.x * 200"
+                      :cy="pin.y * 280"
+                      r="5"
+                      style="pointer-events:all;cursor:pointer"
+                      :title="`Remove pin`"
+                      @click.stop="removePin(view.key, idx)"/>
+            </template>
+          </svg>
+        </div>
+
+        <!-- Region count chips -->
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px" x-show="incident.painLocations[view.key].regions.length">
+          <template x-for="rid in incident.painLocations[view.key].regions" :key="rid">
+            <span style="background:var(--accent-dim);color:var(--accent);font-size:0.7rem;padding:2px 8px;border-radius:var(--radius-full);display:flex;align-items:center;gap:4px">
+              <span x-text="regionLabel(rid)"></span>
+              <button type="button" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;line-height:1;font-size:0.8rem" @click="toggleRegion(view.key, rid)" aria-label="Remove region">&times;</button>
+            </span>
+          </template>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+
+<script>
+function HeadDiagram() {
+  return {
+    views: [
+      { key: 'front', label: 'Front' },
+      { key: 'left',  label: 'Left' },
+      { key: 'right', label: 'Right' },
+      { key: 'back',  label: 'Back' },
+    ],
+    svgContent: { front: '', back: '', left: '', right: '' },
+
+    // Human-readable region labels
+    regionLabels: {
+      front_forehead_center: 'Center Forehead',
+      front_forehead_left:   'Left Forehead',
+      front_forehead_right:  'Right Forehead',
+      front_temple_left:     'Left Temple',
+      front_temple_right:    'Right Temple',
+      front_eye_left:        'Left Eye',
+      front_eye_right:       'Right Eye',
+      front_nose:            'Nose / Sinus',
+      front_cheek_left:      'Left Cheek',
+      front_cheek_right:     'Right Cheek',
+      front_jaw_left:        'Left Jaw',
+      front_jaw_right:       'Right Jaw',
+      front_chin:            'Chin',
+      front_crown:           'Crown',
+      back_crown:            'Crown',
+      back_occipital_left:   'Left Occipital',
+      back_occipital_right:  'Right Occipital',
+      back_occipital_center: 'Center Occipital',
+      back_ear_left:         'Left Ear Area',
+      back_ear_right:        'Right Ear Area',
+      back_neck_left:        'Left Neck',
+      back_neck_right:       'Right Neck',
+      back_neck_center:      'Center Neck',
+      back_lower_skull:      'Lower Skull Left',
+      back_lower_skull_right:'Lower Skull Right',
+      left_crown:    'Crown',
+      left_forehead: 'Forehead',
+      left_temple:   'Temple',
+      left_eye:      'Eye Area',
+      left_cheek:    'Cheek',
+      left_nose:     'Nose',
+      left_ear:      'Ear',
+      left_jaw:      'Jaw / TMJ',
+      left_occipital:'Occipital',
+      left_neck:     'Neck',
+      right_crown:    'Crown',
+      right_forehead: 'Forehead',
+      right_temple:   'Temple',
+      right_eye:      'Eye Area',
+      right_cheek:    'Cheek',
+      right_nose:     'Nose',
+      right_ear:      'Ear',
+      right_jaw:      'Jaw / TMJ',
+      right_occipital:'Occipital',
+      right_neck:     'Neck',
+    },
+
+    async init() {
+      // Load SVG files and inject them
+      for (const view of this.views) {
+        try {
+          const r = await fetch(`svg/head-${view.key}.svg`);
+          if (r.ok) this.svgContent[view.key] = await r.text();
+        } catch { /* ignore */ }
+      }
+
+      // After SVG content renders, wire up region click handlers
+      await this.$nextTick();
+      this.attachRegionHandlers();
+
+      // Re-apply selected state
+      this.refreshRegionStyles();
+    },
+
+    attachRegionHandlers() {
+      document.querySelectorAll('.head-diagram__svg-wrapper').forEach((wrapper, idx) => {
+        const viewKey = this.views[idx]?.key;
+        if (!viewKey) return;
+        wrapper.querySelectorAll('.head-region').forEach(path => {
+          path.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const rid = path.dataset.region;
+            if (rid) this.toggleRegion(viewKey, rid);
+          });
+        });
+      });
+    },
+
+    refreshRegionStyles() {
+      document.querySelectorAll('.head-diagram__svg-wrapper').forEach((wrapper, idx) => {
+        const viewKey = this.views[idx]?.key;
+        if (!viewKey) return;
+        const selected = this.incident.painLocations[viewKey].regions;
+        wrapper.querySelectorAll('.head-region').forEach(path => {
+          const rid = path.dataset.region;
+          if (rid) {
+            path.classList.toggle('selected', selected.includes(rid));
+          }
+        });
+      });
+    },
+
+    toggleRegion(viewKey, regionId) {
+      const regions = this.incident.painLocations[viewKey].regions;
+      const idx = regions.indexOf(regionId);
+      if (idx >= 0) {
+        regions.splice(idx, 1);
+      } else {
+        regions.push(regionId);
+      }
+      this.refreshRegionStyles();
+    },
+
+    handlePanelClick(event, viewKey) {
+      // Clicking on a .head-region is handled separately (stopPropagation)
+      // This catches clicks on the SVG background → drop a pin
+      const wrapper = event.currentTarget;
+      const rect    = wrapper.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width;
+      const y = (event.clientY - rect.top)  / rect.height;
+      // Clamp to [0,1]
+      const cx = Math.max(0, Math.min(1, x));
+      const cy = Math.max(0, Math.min(1, y));
+      this.incident.painLocations[viewKey].pins.push({ x: cx, y: cy });
+    },
+
+    removePin(viewKey, pinIdx) {
+      this.incident.painLocations[viewKey].pins.splice(pinIdx, 1);
+    },
+
+    regionLabel(rid) {
+      return this.regionLabels[rid] ?? rid.replace(/_/g, ' ');
+    },
+  };
+}
+</script>

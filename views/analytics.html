@@ -1,0 +1,325 @@
+<div x-data="Analytics()" x-init="init()">
+
+  <div class="page-header">
+    <h1>Analytics</h1>
+  </div>
+
+  <!-- Loading -->
+  <div class="empty-state" x-show="loading">
+    <div class="spinner" style="margin:0 auto"></div>
+    <p>Loading full history…</p>
+  </div>
+
+  <div x-show="!loading">
+
+    <!-- Tab bar -->
+    <div class="tab-bar h-scroll">
+      <button :class="{active: tab==='incident'}"   @click="tab='incident'">Single Incident</button>
+      <button :class="{active: tab==='calendar'}"   @click="tab='calendar'">Calendar</button>
+      <button :class="{active: tab==='triggers'}"   @click="tab='triggers'">Triggers</button>
+      <button :class="{active: tab==='treatments'}" @click="tab='treatments'">Treatments</button>
+      <button :class="{active: tab==='trends'}"     @click="tab='trends'">Trends</button>
+    </div>
+
+    <!-- ── Single incident pain-over-time ──────────────────────────────── -->
+    <div x-show="tab==='incident'">
+      <div class="chart-wrapper">
+        <div class="chart-title">Pain Level Over Time</div>
+
+        <!-- Incident selector -->
+        <div class="form-group" style="margin-bottom:var(--space-md)">
+          <label class="form-label">Select incident</label>
+          <select class="form-select" x-model="selectedIncidentId" @change="drawPainOverTime()">
+            <option value="">— Choose an incident —</option>
+            <template x-for="entry in manifest.incidents" :key="entry.id">
+              <option :value="entry.id"
+                      x-text="Utils.formatDate(entry.startTime) + ' · Pain ' + (entry.peakPainLevel ?? '?') + ' · ' + Utils.formatDuration(entry.durationMinutes)">
+              </option>
+            </template>
+          </select>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" x-show="!selectedIncidentId">
+          <p>Select an incident above to see its pain timeline.</p>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-canvas-container" x-show="selectedIncidentId">
+          <canvas id="chart-pain-time" height="200"></canvas>
+        </div>
+
+        <!-- No check-ins message -->
+        <div class="empty-state" x-show="selectedIncidentId && noCheckIns">
+          <p>This incident has no check-ins logged yet.</p>
+          <button class="btn btn-secondary btn-sm"
+                  style="margin-top:var(--space-md)"
+                  @click="Router.go('check-in', {id: selectedIncidentId})">
+            + Add Check-in
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Calendar heatmap ────────────────────────────────────────────── -->
+    <div x-show="tab==='calendar'">
+      <div class="chart-wrapper">
+        <div class="chart-title">Headache Days</div>
+        <div class="cal-heatmap h-scroll" x-html="calendarSVG"></div>
+        <div style="display:flex;align-items:center;gap:var(--space-sm);margin-top:var(--space-md);font-size:0.78rem;color:var(--text-muted)">
+          <span>Fewer</span>
+          <span style="display:flex;gap:2px">
+            <span style="width:12px;height:12px;border-radius:2px;background:var(--bg-elevated);display:inline-block"></span>
+            <span style="width:12px;height:12px;border-radius:2px;background:rgba(124,106,255,.3);display:inline-block"></span>
+            <span style="width:12px;height:12px;border-radius:2px;background:rgba(124,106,255,.55);display:inline-block"></span>
+            <span style="width:12px;height:12px;border-radius:2px;background:rgba(124,106,255,.8);display:inline-block"></span>
+            <span style="width:12px;height:12px;border-radius:2px;background:#7c6aff;display:inline-block"></span>
+          </span>
+          <span>More</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Triggers ────────────────────────────────────────────────────── -->
+    <div x-show="tab==='triggers'">
+      <div class="chart-wrapper">
+        <div class="chart-title">Most Common Triggers</div>
+        <div class="chart-canvas-container" x-show="allIncidents?.length">
+          <canvas id="chart-triggers" height="280"></canvas>
+        </div>
+        <div class="empty-state" x-show="!triggerDataAvailable">
+          <p>Not enough trigger data yet. Log more incidents with triggers selected.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Treatment effectiveness ─────────────────────────────────────── -->
+    <div x-show="tab==='treatments'">
+      <div class="chart-wrapper">
+        <div class="chart-title">Treatment Effectiveness</div>
+        <div x-show="treatmentStats.length" class="treatment-bar-list">
+          <template x-for="item in treatmentStats" :key="item.name">
+            <div class="treatment-bar-item">
+              <span class="treatment-bar-item__name" x-text="item.name"></span>
+              <div class="treatment-bar-item__bar">
+                <div class="treatment-bar-item__fill"
+                     :style="`width:${item.helpfulPct}%;background:${item.helpfulPct >= 50 ? 'var(--success)' : item.helpfulPct >= 25 ? 'var(--warning)' : 'var(--danger)'}`">
+                </div>
+              </div>
+              <span class="treatment-bar-item__pct" x-text="item.helpfulPct + '%'"></span>
+              <span style="font-size:0.75rem;color:var(--text-muted);min-width:60px" x-text="`${item.total} use${item.total!==1?'s':''}`"></span>
+            </div>
+          </template>
+        </div>
+        <div class="empty-state" x-show="!treatmentStats.length">
+          <p>No treatment effectiveness data yet. Rate treatments when logging check-ins.</p>
+        </div>
+        <p class="form-hint" x-show="treatmentStats.length" style="margin-top:var(--space-md)">
+          % helpful = treatments rated "helped" or "somewhat helped" out of all rated uses.
+        </p>
+      </div>
+    </div>
+
+    <!-- ── Trends ──────────────────────────────────────────────────────── -->
+    <div x-show="tab==='trends'">
+      <div class="chart-wrapper">
+        <div class="chart-title">Pain & Duration Over Time</div>
+        <div class="chart-canvas-container" x-show="allIncidents?.length > 1">
+          <canvas id="chart-trends" height="220"></canvas>
+        </div>
+        <div class="empty-state" x-show="!allIncidents || allIncidents.length < 2">
+          <p>Need at least 2 incidents to show trends.</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /!loading -->
+</div>
+
+<script>
+function Analytics() {
+  return {
+    tab: 'incident',
+    loading: false,
+    allIncidents: null,
+    selectedIncidentId: '',
+    noCheckIns: false,
+    calendarSVG: '',
+    triggerDataAvailable: false,
+    treatmentStats: [],
+    _charts: {},
+
+    get manifest() { return Alpine.store('data').manifest ?? { incidents: [] }; },
+
+    async init() {
+      // Listen for tab changes to draw charts lazily
+      this.$watch('tab', t => this.onTabChange(t));
+
+      // Load all incidents for analytics
+      this.loading = true;
+      this.allIncidents = await App.loadAllForAnalytics();
+      this.loading = false;
+
+      // Default to calendar
+      this.tab = 'calendar';
+      this.onTabChange('calendar');
+    },
+
+    async onTabChange(tab) {
+      await this.$nextTick();
+      this.destroyChart('pain-time');
+      this.destroyChart('triggers');
+      this.destroyChart('trends');
+
+      if (tab === 'calendar')   this.drawCalendar();
+      if (tab === 'triggers')   this.drawTriggers();
+      if (tab === 'treatments') this.computeTreatments();
+      if (tab === 'trends')     this.drawTrends();
+    },
+
+    // ── Pain over time ──────────────────────────────────────────────────
+
+    async drawPainOverTime() {
+      await this.$nextTick();
+      this.destroyChart('pain-time');
+      if (!this.selectedIncidentId) return;
+
+      let incident = this.allIncidents?.find(i => i.id === this.selectedIncidentId);
+      if (!incident) {
+        try { incident = await Drive.loadIncident(this.selectedIncidentId); } catch { return; }
+      }
+
+      const checkIns = (incident.checkIns ?? []).filter(c => c.painLevel);
+      this.noCheckIns = !checkIns.length;
+      if (this.noCheckIns) return;
+
+      const canvas = document.getElementById('chart-pain-time');
+      if (canvas) {
+        this._charts['pain-time'] = Charts.painOverTime(canvas, incident);
+      }
+    },
+
+    // ── Calendar heatmap ────────────────────────────────────────────────
+
+    drawCalendar() {
+      if (!this.allIncidents?.length) {
+        this.calendarSVG = '<p style="color:var(--text-muted);padding:1rem">No incidents to display yet.</p>';
+        return;
+      }
+
+      // Build day → count map
+      const dayCount = {};
+      for (const inc of this.allIncidents) {
+        if (!inc.startTime) continue;
+        const d = new Date(inc.startTime);
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        dayCount[key] = (dayCount[key] ?? 0) + 1;
+      }
+
+      // 52 weeks ending today
+      const cellSize = 12, gap = 2, pad = 28;
+      const today = new Date();
+      const weeks = 52;
+      const width  = weeks * (cellSize + gap) + pad;
+      const height = 7   * (cellSize + gap) + pad + 16; // +16 for month labels
+
+      // Find start Sunday
+      const start = new Date(today);
+      start.setDate(start.getDate() - (weeks * 7 - 1));
+      // Move to nearest previous Sunday
+      start.setDate(start.getDate() - start.getDay());
+
+      const cells  = [];
+      const months = {};
+      const cur    = new Date(start);
+      for (let w = 0; w < weeks; w++) {
+        for (let d = 0; d < 7; d++) {
+          const key  = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;
+          const cnt  = dayCount[key] ?? 0;
+          const lvl  = cnt === 0 ? 0 : cnt === 1 ? 1 : cnt === 2 ? 2 : cnt <= 3 ? 3 : 4;
+          const x    = w * (cellSize + gap) + pad;
+          const y    = d * (cellSize + gap) + 16;
+          const fill = ['var(--bg-elevated)','rgba(124,106,255,.3)','rgba(124,106,255,.55)','rgba(124,106,255,.8)','#7c6aff'][lvl];
+          cells.push(`<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" rx="2" fill="${fill}"><title>${key}: ${cnt} headache${cnt!==1?'s':''}</title></rect>`);
+
+          // Month label (first cell of each month)
+          if (d === 0 && cur.getDate() <= 7) {
+            const label = cur.toLocaleDateString('en-US', { month: 'short' });
+            months[x] = label;
+          }
+          cur.setDate(cur.getDate() + 1);
+        }
+      }
+
+      // Day labels
+      const dayLabels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+        .map((l, i) => i % 2 === 1 ? `<text x="0" y="${i*(cellSize+gap)+16+cellSize}" font-size="9" fill="#5a5a78">${l}</text>` : '')
+        .join('');
+
+      const monthLabels = Object.entries(months)
+        .map(([x, l]) => `<text x="${x}" y="10" font-size="9" fill="#5a5a78">${l}</text>`)
+        .join('');
+
+      this.calendarSVG = `<svg viewBox="0 0 ${width} ${height}" style="min-width:${width}px">
+        ${monthLabels}${dayLabels}${cells.join('')}
+      </svg>`;
+    },
+
+    // ── Triggers ────────────────────────────────────────────────────────
+
+    drawTriggers() {
+      const hasTriggers = this.allIncidents?.some(i => i.triggers?.length);
+      this.triggerDataAvailable = hasTriggers;
+      if (!hasTriggers) return;
+
+      const canvas = document.getElementById('chart-triggers');
+      if (canvas && this.allIncidents) {
+        this._charts['triggers'] = Charts.triggers(canvas, this.allIncidents);
+      }
+    },
+
+    // ── Treatment effectiveness ─────────────────────────────────────────
+
+    computeTreatments() {
+      const tally = {}; // id → { name, helpful, total }
+
+      for (const inc of (this.allIncidents ?? [])) {
+        for (const ci of (inc.checkIns ?? [])) {
+          for (const t of (ci.treatments ?? [])) {
+            if (!t.effectiveness) continue;
+            if (!tally[t.id]) tally[t.id] = { name: t.name, helpful: 0, total: 0 };
+            tally[t.id].total++;
+            if (t.effectiveness === 'helpful' || t.effectiveness === 'somewhat_helpful') {
+              tally[t.id].helpful++;
+            }
+          }
+        }
+      }
+
+      this.treatmentStats = Object.values(tally)
+        .filter(t => t.total >= 1)
+        .map(t => ({ ...t, helpfulPct: Math.round((t.helpful / t.total) * 100) }))
+        .sort((a, b) => b.helpfulPct - a.helpfulPct);
+    },
+
+    // ── Trends ──────────────────────────────────────────────────────────
+
+    drawTrends() {
+      if (!this.allIncidents || this.allIncidents.length < 2) return;
+      const canvas = document.getElementById('chart-trends');
+      if (canvas) {
+        this._charts['trends'] = Charts.trends(canvas, this.allIncidents);
+      }
+    },
+
+    // ── Helpers ─────────────────────────────────────────────────────────
+
+    destroyChart(key) {
+      if (this._charts[key]) {
+        this._charts[key].destroy();
+        delete this._charts[key];
+      }
+    },
+  };
+}
+</script>

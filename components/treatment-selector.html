@@ -1,0 +1,132 @@
+<!--
+  treatment-selector component
+  Expects `treatments` array of {id, name, type, effectiveness} in parent scope.
+-->
+<div x-data="TreatmentSelector()" x-init="init()" class="form-group">
+  <label class="form-label">Treatments Tried</label>
+
+  <!-- Existing treatments -->
+  <div style="display:flex;flex-direction:column;gap:var(--space-sm);margin-bottom:var(--space-md)" x-show="treatments.length">
+    <template x-for="(t, idx) in treatments" :key="t.id + idx">
+      <div class="treatment-item">
+        <span class="treatment-item__name" x-text="t.name"></span>
+        <div class="effectiveness-group" role="group" :aria-label="`Effectiveness of ${t.name}`">
+          <button type="button"
+                  :class="'effectiveness-btn' + (t.effectiveness === 'helpful' ? ' helpful' : '')"
+                  @click="t.effectiveness = t.effectiveness === 'helpful' ? null : 'helpful'"
+                  :aria-pressed="t.effectiveness === 'helpful'">
+            ✓ Helped
+          </button>
+          <button type="button"
+                  :class="'effectiveness-btn' + (t.effectiveness === 'somewhat_helpful' ? ' somewhat' : '')"
+                  @click="t.effectiveness = t.effectiveness === 'somewhat_helpful' ? null : 'somewhat_helpful'"
+                  :aria-pressed="t.effectiveness === 'somewhat_helpful'">
+            ~ Some
+          </button>
+          <button type="button"
+                  :class="'effectiveness-btn' + (t.effectiveness === 'unhelpful' ? ' unhelpful' : '')"
+                  @click="t.effectiveness = t.effectiveness === 'unhelpful' ? null : 'unhelpful'"
+                  :aria-pressed="t.effectiveness === 'unhelpful'">
+            ✗ No
+          </button>
+          <button type="button"
+                  :class="'effectiveness-btn' + (t.effectiveness === 'unsure' ? ' unsure' : '')"
+                  @click="t.effectiveness = t.effectiveness === 'unsure' ? null : 'unsure'"
+                  :aria-pressed="t.effectiveness === 'unsure'">
+            ? Unsure
+          </button>
+        </div>
+        <button type="button" class="treatment-item__remove" @click="remove(idx)" aria-label="Remove treatment">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </template>
+  </div>
+
+  <!-- Add medication -->
+  <div style="margin-bottom:var(--space-sm)">
+    <p class="form-hint" style="margin-bottom:var(--space-sm)">Add medication:</p>
+    <div style="display:flex;flex-wrap:wrap;gap:var(--space-sm)">
+      <template x-for="med in availableMeds" :key="med.id">
+        <button type="button"
+                class="checkbox-pill"
+                :class="{ selected: isAdded(med.id) }"
+                @click="addMed(med)"
+                :disabled="isAdded(med.id)">
+          <span x-text="med.label"></span>
+        </button>
+      </template>
+    </div>
+  </div>
+
+  <!-- Add non-drug method -->
+  <div style="margin-bottom:var(--space-md)">
+    <p class="form-hint" style="margin-bottom:var(--space-sm)">Add non-drug method:</p>
+    <div style="display:flex;flex-wrap:wrap;gap:var(--space-sm)">
+      <template x-for="m in availableMethods" :key="m.id">
+        <button type="button"
+                class="checkbox-pill"
+                :class="{ selected: isAdded(m.id) }"
+                @click="addMethod(m)"
+                :disabled="isAdded(m.id)">
+          <span x-text="m.label"></span>
+        </button>
+      </template>
+    </div>
+  </div>
+
+  <!-- Custom treatment -->
+  <div class="add-custom-input">
+    <input type="text"
+           class="form-input"
+           x-model="customName"
+           placeholder="Add custom treatment…"
+           @keydown.enter.prevent="addCustom()"
+           maxlength="80"
+           style="flex:1">
+    <button type="button" class="btn btn-secondary btn-sm" @click="addCustom()" :disabled="!customName.trim()">Add</button>
+  </div>
+</div>
+
+<script>
+function TreatmentSelector() {
+  return {
+    customName: '',
+    availableMeds:    CONFIG.medications    ?? [],
+    availableMethods: CONFIG.nonDrugMethods ?? [],
+
+    init() {
+      // Ensure parent has treatments array
+      if (!Array.isArray(this.treatments)) this.treatments = [];
+    },
+
+    isAdded(id) {
+      return this.treatments.some(t => t.id === id);
+    },
+
+    addMed(med) {
+      if (this.isAdded(med.id)) return;
+      this.treatments.push({ id: med.id, name: med.label, type: 'medication', effectiveness: null });
+    },
+
+    addMethod(m) {
+      if (this.isAdded(m.id)) return;
+      this.treatments.push({ id: m.id, name: m.label, type: 'non_drug', effectiveness: null });
+    },
+
+    addCustom() {
+      const name = this.customName.trim();
+      if (!name) return;
+      const id = 'custom_' + Date.now();
+      this.treatments.push({ id, name, type: 'custom', effectiveness: null });
+      this.customName = '';
+    },
+
+    remove(idx) {
+      this.treatments.splice(idx, 1);
+    },
+  };
+}
+</script>
