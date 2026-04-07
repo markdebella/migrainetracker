@@ -7,11 +7,11 @@
         <path d="M15 18l-6-6 6-6"/>
       </svg>
     </button>
-    <h1 x-text="isNew ? 'Log Headache' : 'Edit Incident'"></h1>
+    <h1 x-text="isNew ? 'Log Headache' : (isEditing ? 'Edit Incident' : 'View Incident')"></h1>
     <div style="margin-left:auto;display:flex;gap:var(--space-sm)" x-show="!isNew">
       <button class="btn btn-secondary btn-sm"
               @click="Router.go('check-in', {id: incident.id})"
-              x-show="incident.isActive">
+              x-show="incident?.isActive">
         + Check-in
       </button>
     </div>
@@ -28,19 +28,20 @@
     <!-- ── Attack Type ──────────────────────────────────────────────────── -->
     <div class="card" style="margin-bottom:var(--space-md)">
       <div class="form-group" style="margin-bottom:0">
-        <label class="form-label" for="attack-type">Attack Type</label>
+        <label class="form-label">Attack Type</label>
         <div style="display:flex;flex-wrap:wrap;gap:var(--space-sm)">
           <template x-for="t in allTypes" :key="t.id">
             <button type="button"
                     :class="'checkbox-pill' + (incident.type === t.id ? ' selected' : '')"
                     :aria-pressed="incident.type === t.id"
+                    :disabled="!isEditing"
                     @click="incident.type = t.id; incident.customTypeName = null">
               <span x-text="t.label"></span>
             </button>
           </template>
         </div>
-        <!-- Custom type input -->
-        <div class="add-custom-input" style="margin-top:var(--space-sm)">
+        <!-- Custom type input — edit mode only -->
+        <div class="add-custom-input" style="margin-top:var(--space-sm)" x-show="isEditing">
           <input type="text" class="form-input" x-model="customTypeInput"
                  placeholder="Custom type…" maxlength="60" style="flex:1"
                  @keydown.enter.prevent="addCustomType()">
@@ -55,7 +56,21 @@
       <div class="card__header">
         <span class="card__title">Time</span>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+      <!-- View mode: plain text -->
+      <div x-show="!isEditing" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+        <div>
+          <p class="form-label">Start</p>
+          <p style="font-size:0.9rem;color:var(--text-primary)"
+             x-text="incident ? (Utils.formatDate(incident.startTime) + ' ' + Utils.formatTime(incident.startTime)) : ''"></p>
+        </div>
+        <div>
+          <p class="form-label">End</p>
+          <p style="font-size:0.9rem;color:var(--text-primary)"
+             x-text="incident?.endTime ? (Utils.formatDate(incident.endTime) + ' ' + Utils.formatTime(incident.endTime)) : (incident?.isActive ? 'Ongoing' : '—')"></p>
+        </div>
+      </div>
+      <!-- Edit mode: datetime pickers -->
+      <div x-show="isEditing" class="time-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
         <div class="form-group" style="margin:0">
           <label class="form-label" for="start-time">Start</label>
           <input type="datetime-local" id="start-time" class="form-input"
@@ -66,8 +81,7 @@
           <label class="form-label" for="end-time">End</label>
           <input type="datetime-local" id="end-time" class="form-input"
                  :value="incident.endTime ? toInput(incident.endTime) : ''"
-                 @change="incident.endTime = $event.target.value ? new Date($event.target.value).toISOString() : null"
-                 :placeholder="incident.isActive ? 'Still ongoing' : ''">
+                 @change="incident.endTime = $event.target.value ? new Date($event.target.value).toISOString() : null">
           <p class="form-hint" x-show="!incident.endTime">Leave blank if still ongoing</p>
         </div>
       </div>
@@ -77,7 +91,7 @@
     <div class="card" style="margin-bottom:var(--space-md)">
       <div>
         <label class="form-label">Pain Location</label>
-        <p class="form-hint" style="margin-bottom:var(--space-md)">
+        <p class="form-hint" style="margin-bottom:var(--space-md)" x-show="isEditing">
           Tap a shaded region to select it. Tap an empty area to drop a precise pain pin.
           Tap a pin to remove it.
         </p>
@@ -86,6 +100,7 @@
             <div class="head-diagram__panel">
               <span class="head-diagram__label" x-text="view.label"></span>
               <div class="head-diagram__svg-wrapper"
+                   :class="{'view-mode': !isEditing}"
                    @click="handlePanelClick($event, view.key)">
                 <div x-html="svgContent[view.key]"
                      style="width:100%;height:100%;position:absolute;inset:0"
@@ -96,9 +111,9 @@
                   <template x-for="(pin, idx) in incident.painLocations[view.key].pins" :key="idx">
                     <circle class="pain-pin"
                             :cx="pin.x * 200" :cy="pin.y * 280" r="5"
-                            style="pointer-events:all;cursor:pointer"
-                            @click.stop="removePin(view.key, idx)"
-                            title="Tap to remove pin"/>
+                            :style="isEditing ? 'pointer-events:all;cursor:pointer' : 'pointer-events:none'"
+                            @click.stop="isEditing && removePin(view.key, idx)"
+                            :title="isEditing ? 'Tap to remove pin' : ''"/>
                   </template>
                 </svg>
               </div>
@@ -108,7 +123,7 @@
                 <template x-for="rid in incident.painLocations[view.key].regions" :key="rid">
                   <span style="background:var(--accent-dim);color:var(--accent);font-size:0.7rem;padding:2px 8px;border-radius:var(--radius-full);display:inline-flex;align-items:center;gap:4px">
                     <span x-text="regionLabel(rid)"></span>
-                    <button type="button"
+                    <button type="button" x-show="isEditing"
                             style="background:none;border:none;color:inherit;cursor:pointer;padding:0;line-height:1"
                             @click="toggleRegion(view.key, rid)">&times;</button>
                   </span>
@@ -128,6 +143,7 @@
           <button type="button"
                   :class="'checkbox-pill' + (incident.premonitorySymptoms.includes(item.id) ? ' selected' : '')"
                   :aria-pressed="incident.premonitorySymptoms.includes(item.id)"
+                  :disabled="!isEditing"
                   @click="toggle(incident.premonitorySymptoms, item.id)">
             <span x-text="item.label"></span>
           </button>
@@ -136,12 +152,13 @@
           <button type="button"
                   :class="'checkbox-pill' + (incident.premonitorySymptoms.includes(item.id) ? ' selected' : '')"
                   :aria-pressed="incident.premonitorySymptoms.includes(item.id)"
+                  :disabled="!isEditing"
                   @click="toggle(incident.premonitorySymptoms, item.id)">
             <span x-text="item.label"></span>
           </button>
         </template>
       </div>
-      <div class="add-custom-input">
+      <div class="add-custom-input" x-show="isEditing">
         <input type="text" class="form-input" x-model="newProdrome"
                placeholder="Add custom warning sign…" maxlength="60" style="flex:1"
                @keydown.enter.prevent="addCustom('premonitorySymptoms', 'newProdrome', customProdromeItems)">
@@ -159,6 +176,7 @@
           <button type="button"
                   :class="'checkbox-pill' + (incident.symptoms.includes(item.id) ? ' selected' : '')"
                   :aria-pressed="incident.symptoms.includes(item.id)"
+                  :disabled="!isEditing"
                   @click="toggle(incident.symptoms, item.id)">
             <span x-text="item.label"></span>
           </button>
@@ -167,12 +185,13 @@
           <button type="button"
                   :class="'checkbox-pill' + (incident.symptoms.includes(item.id) ? ' selected' : '')"
                   :aria-pressed="incident.symptoms.includes(item.id)"
+                  :disabled="!isEditing"
                   @click="toggle(incident.symptoms, item.id)">
             <span x-text="item.label"></span>
           </button>
         </template>
       </div>
-      <div class="add-custom-input">
+      <div class="add-custom-input" x-show="isEditing">
         <input type="text" class="form-input" x-model="newSymptom"
                placeholder="Add custom symptom…" maxlength="60" style="flex:1"
                @keydown.enter.prevent="addCustom('symptoms', 'newSymptom', customSymptomItems)">
@@ -190,6 +209,7 @@
           <button type="button"
                   :class="'checkbox-pill' + (incident.triggers.includes(item.id) ? ' selected' : '')"
                   :aria-pressed="incident.triggers.includes(item.id)"
+                  :disabled="!isEditing"
                   @click="toggle(incident.triggers, item.id)">
             <span x-text="item.label"></span>
           </button>
@@ -198,12 +218,13 @@
           <button type="button"
                   :class="'checkbox-pill' + (incident.triggers.includes(item.id) ? ' selected' : '')"
                   :aria-pressed="incident.triggers.includes(item.id)"
+                  :disabled="!isEditing"
                   @click="toggle(incident.triggers, item.id)">
             <span x-text="item.label"></span>
           </button>
         </template>
       </div>
-      <div class="add-custom-input">
+      <div class="add-custom-input" x-show="isEditing">
         <input type="text" class="form-input" x-model="newTrigger"
                placeholder="Add custom trigger…" maxlength="60" style="flex:1"
                @keydown.enter.prevent="addCustom('triggers', 'newTrigger', customTriggerItems)">
@@ -221,6 +242,7 @@
           <button type="button"
                   :class="'checkbox-pill' + (incident.affectedActivities.includes(item.id) ? ' selected' : '')"
                   :aria-pressed="incident.affectedActivities.includes(item.id)"
+                  :disabled="!isEditing"
                   @click="toggle(incident.affectedActivities, item.id)">
             <span x-text="item.label"></span>
           </button>
@@ -233,17 +255,19 @@
       <div class="card__header"><span class="card__title">Notes</span></div>
       <textarea class="form-textarea"
                 x-model="incident.notes"
-                placeholder="Describe how this headache felt, what made it better or worse…"
+                :disabled="!isEditing"
+                :placeholder="isEditing ? 'Describe how this headache felt, what made it better or worse…' : ''"
                 rows="4"
-                @input="autoSave()">
+                @input="isEditing && autoSave()">
       </textarea>
+      <p x-show="!isEditing && !incident.notes" class="form-hint" style="color:var(--text-muted)">No notes recorded.</p>
     </div>
 
     <!-- ── Location ──────────────────────────────────────────────────── -->
     <div class="card" style="margin-bottom:var(--space-md)">
       <div class="card__header"><span class="card__title">Location (optional)</span></div>
       <div style="display:flex;align-items:center;gap:var(--space-md);flex-wrap:wrap">
-        <button type="button" class="btn btn-secondary btn-sm"
+        <button type="button" class="btn btn-secondary btn-sm" x-show="isEditing"
                 @click="captureLocation()"
                 :disabled="locationLoading">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -251,16 +275,17 @@
           </svg>
           <span x-text="locationLoading ? 'Getting location…' : 'Capture Location'"></span>
         </button>
-        <span class="form-hint" x-show="incident.location.lat"
-              x-text="`${incident.location.lat.toFixed(4)}, ${incident.location.lon.toFixed(4)}`">
+        <span class="form-hint" x-show="incident.location?.lat"
+              x-text="`${incident.location.lat?.toFixed(4)}, ${incident.location.lon?.toFixed(4)}`">
         </span>
+        <span class="form-hint" x-show="!isEditing && !incident.location?.lat">No location recorded.</span>
         <button type="button" class="btn btn-ghost btn-sm"
-                x-show="incident.location.lat"
+                x-show="isEditing && incident.location?.lat"
                 @click="incident.location = {lat:null,lon:null,accuracy:null}">
           Clear
         </button>
       </div>
-      <p class="form-hint" style="margin-top:var(--space-xs)">
+      <p class="form-hint" style="margin-top:var(--space-xs)" x-show="isEditing">
         Stored in your Drive only — not shared with anyone.
       </p>
     </div>
@@ -279,8 +304,7 @@
           <div style="display:flex;gap:var(--space-md);padding-bottom:var(--space-md);border-bottom:1px solid var(--border)"
                :style="idx === incident.checkIns.length - 1 ? 'border-bottom:none;padding-bottom:0' : ''">
             <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
-              <div style="width:10px;height:10px;border-radius:50%;background:var(--pain-${ci.painLevel ?? 5} ?? var(--accent));"
-                   :style="`background:var(--pain-${ci.painLevel ?? 5})`"></div>
+              <div :style="`width:10px;height:10px;border-radius:50%;background:var(--pain-${ci.painLevel ?? 5})`"></div>
               <div style="width:2px;flex:1;background:var(--border)" x-show="idx < incident.checkIns.length - 1"></div>
             </div>
             <div style="flex:1;min-width:0">
@@ -311,8 +335,9 @@
     </div>
 
     <!-- ── Action buttons ─────────────────────────────────────────────── -->
-    <div style="display:flex;flex-direction:column;gap:var(--space-sm)">
-      <!-- Active attack: Start / Check-in -->
+    <div style="display:flex;flex-direction:column;gap:var(--space-sm);margin-bottom:var(--space-lg)">
+
+      <!-- New incident: Start Attack / Save as Past -->
       <div x-show="isNew" style="display:flex;gap:var(--space-sm);flex-wrap:wrap">
         <button class="btn btn-primary" style="flex:1" @click="startAttack()" :disabled="saving">
           <span x-show="!saving">Start Attack (ongoing)</span>
@@ -323,169 +348,32 @@
         </button>
       </div>
 
-      <!-- Existing incident -->
-      <div x-show="!isNew" style="display:flex;gap:var(--space-sm);flex-wrap:wrap">
+      <!-- Existing incident — VIEW mode -->
+      <div x-show="!isNew && !isEditing" style="display:flex;gap:var(--space-sm);flex-wrap:wrap">
+        <button class="btn btn-primary" style="flex:1" @click="startEdit()">Edit Incident</button>
+        <button class="btn btn-secondary btn-sm"
+                @click="Router.go('check-in', {id: incident.id})">
+          + Check-in
+        </button>
+        <button class="btn btn-danger btn-sm" @click="confirmDelete()">Delete</button>
+      </div>
+
+      <!-- Existing incident — EDIT mode -->
+      <div x-show="!isNew && isEditing" style="display:flex;gap:var(--space-sm);flex-wrap:wrap">
         <button class="btn btn-primary" style="flex:1" @click="saveIncident()" :disabled="saving">
           <span x-show="!saving">Save Changes</span>
           <span x-show="saving">Saving…</span>
         </button>
-        <button class="btn btn-danger" @click="confirmDelete()" :disabled="saving">Delete</button>
+        <button class="btn btn-secondary" @click="cancelEdit()" :disabled="saving">Cancel</button>
+        <button class="btn btn-danger btn-sm" @click="confirmDelete()" :disabled="saving">Delete</button>
       </div>
-      <button class="btn btn-secondary btn-block"
-              @click="Router.go('check-in', {id: incident.id})"
-              x-show="!isNew">
-        + Add Check-in
-      </button>
+
     </div>
 
   </div><!-- /!loading -->
 </div>
 
 <script>
-function LogIncident() {
-  return {
-    incident: null,
-    isNew: true,
-    loading: true,
-    saving: false,
-    locationLoading: false,
-    customTypeInput: '',
-    newProdrome: '',
-    newSymptom: '',
-    newTrigger: '',
-    customProdromeItems: [],
-    customSymptomItems: [],
-    customTriggerItems: [],
-
-    get allTypes() {
-      const base    = [...CONFIG.attackTypes];
-      const custom  = (Alpine.store('data').settings?.customAttackTypes ?? [])
-        .map(c => ({ id: 'custom_' + c.toLowerCase().replace(/\s+/g,'_'), label: c }));
-      return [...base, ...custom];
-    },
-
-    async init() {
-      const params = Alpine.store('ui').routeParams;
-      const id     = params?.id;
-      this.isNew   = !id || id === 'new';
-
-      if (this.isNew) {
-        this.incident = IncidentFactory.blank();
-        this.loading  = false;
-      } else {
-        try {
-          this.incident = await Drive.loadIncident(id);
-        } catch {
-          Toast.error('Could not load incident.');
-          Router.go('dashboard');
-          return;
-        } finally {
-          this.loading = false;
-        }
-      }
-    },
-
-    toInput(iso) { return Utils.toInputDateTime(iso); },
-
-    toggle(arr, id) {
-      const idx = arr.indexOf(id);
-      idx >= 0 ? arr.splice(idx, 1) : arr.push(id);
-    },
-
-    addCustom(incidentProp, inputProp, customArray) {
-      const label = this[inputProp].trim();
-      if (!label) return;
-      const id = 'custom_' + label.toLowerCase().replace(/\s+/g,'_') + '_' + Date.now();
-      customArray.push({ id, label });
-      this.incident[incidentProp].push(id);
-      this[inputProp] = '';
-    },
-
-    addCustomType() {
-      const label = this.customTypeInput.trim();
-      if (!label) return;
-      // Save to settings
-      const settings = Alpine.store('data').settings;
-      if (!settings.customAttackTypes.includes(label)) {
-        settings.customAttackTypes.push(label);
-        Drive.saveSettings(settings);
-      }
-      const id = 'custom_' + label.toLowerCase().replace(/\s+/g,'_');
-      this.incident.type = id;
-      this.customTypeInput = '';
-    },
-
-    autoSave() { AutoSave.queue(this.incident); },
-
-    async captureLocation() {
-      if (!navigator.geolocation) {
-        Toast.info('Geolocation is not supported by your browser.');
-        return;
-      }
-      this.locationLoading = true;
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          this.incident.location = {
-            lat: pos.coords.latitude,
-            lon: pos.coords.longitude,
-            accuracy: pos.coords.accuracy,
-          };
-          this.locationLoading = false;
-        },
-        () => {
-          Toast.error('Could not get location. Check browser permissions.');
-          this.locationLoading = false;
-        }
-      );
-    },
-
-    async startAttack() {
-      this.saving = true;
-      this.incident.isActive = true;
-      this.incident.endTime  = null;
-      try {
-        await App.saveIncident(this.incident);
-        Notifications.startPrompt();
-        Router.go('dashboard');
-      } finally {
-        this.saving = false;
-      }
-    },
-
-    async saveAndClose() {
-      this.saving = true;
-      try {
-        await App.saveIncident(this.incident, { close: true });
-        Router.go('dashboard');
-      } finally {
-        this.saving = false;
-      }
-    },
-
-    async saveIncident() {
-      this.saving = true;
-      try {
-        await App.saveIncident(this.incident);
-        Toast.success('Saved.');
-      } finally {
-        this.saving = false;
-      }
-    },
-
-    async confirmDelete() {
-      if (!confirm('Delete this incident? This cannot be undone.')) return;
-      await App.deleteIncident(this.incident.id);
-    },
-
-    effectivenessLabel(e) {
-      return { helpful:'Helped', somewhat_helpful:'Somewhat', unhelpful:"Didn't help", unsure:'Unsure' }[e] ?? e;
-    },
-    effectivenessColor(e) {
-      const m = { helpful:'color:var(--success)', somewhat_helpful:'color:var(--warning)', unhelpful:'color:var(--danger)', unsure:'color:var(--info)' };
-      return m[e] ?? '';
-    },
-
-    // HeadDiagram is inlined directly in the template above via x-data="HeadDiagram()"
-  };
-}
+// NOTE: This script block is not executed when loaded via x-html.
+// The active LogIncident() component is defined in js/view-components.js
 </script>

@@ -335,6 +335,10 @@ a { color: var(--accent); text-decoration: none; }
   color: var(--accent);
   font-weight: 600;
 }
+/* View-mode disabled pills */
+.checkbox-pill:disabled { cursor: default; pointer-events: none; }
+.checkbox-pill:disabled:not(.selected) { opacity: 0.3; }
+.checkbox-pill.selected:disabled { opacity: 1; }
 
 /* Section collapsible */
 .section {
@@ -480,6 +484,14 @@ a { color: var(--accent); text-decoration: none; }
 }
 .signin-screen__privacy a { color: var(--text-muted); text-decoration: underline; }
 .signin-screen__version { font-size: 0.65rem; color: var(--text-muted); opacity: 0.5; letter-spacing: 0.05em; margin-top: var(--space-sm); }
+.app-version-stamp {
+  text-align: center;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  opacity: 0.35;
+  padding: var(--space-xl) 0 var(--space-sm);
+  letter-spacing: 0.05em;
+}
 
 /* ── Dividers ────────────────────────────────────────────────────────────── */
 .divider {
@@ -556,6 +568,17 @@ a { color: var(--accent); text-decoration: none; }
 }
 @media (max-width: 767px) {
   .hide-mobile { display: none !important; }
+  /* Tighter card padding on small screens */
+  .card { padding: var(--space-md); }
+  /* Smaller page heading on mobile */
+  .page-header h1 { font-size: 1.15rem; }
+  /* Stack time grid on narrow screens */
+  .time-grid { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 400px) {
+  /* Very small screens: reduce button padding */
+  .btn { padding: 0.5rem var(--space-md); }
+  .btn-sm { padding: 0.3rem var(--space-sm); }
 }
 
 /* ── Empty state ─────────────────────────────────────────────────────────── */

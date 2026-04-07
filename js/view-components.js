@@ -147,6 +147,8 @@ function LogIncident() {
   return {
     incident: null,
     isNew: true,
+    isEditing: false,
+    _incidentSnapshot: null,
     loading: true,
     saving: false,
     locationLoading: false,
@@ -191,6 +193,7 @@ function LogIncident() {
     },
 
     onSvgClick(event, viewKey) {
+      if (!this.isEditing) return;
       if (event.target.classList.contains('head-region') && event.target.dataset.region) {
         event.stopPropagation();
         this.toggleRegion(viewKey, event.target.dataset.region);
@@ -198,6 +201,7 @@ function LogIncident() {
     },
 
     handlePanelClick(event, viewKey) {
+      if (!this.isEditing) return;
       if (event.target.classList.contains('head-region')) return;
       const wrapper = event.currentTarget;
       const rect = wrapper.getBoundingClientRect();
@@ -250,6 +254,7 @@ function LogIncident() {
       const params = Alpine.store('ui').routeParams;
       const id     = params?.id;
       this.isNew   = !id || id === 'new';
+      this.isEditing = this.isNew;  // new incidents start in edit mode
       if (this.isNew) {
         this.incident = IncidentFactory.blank();
         this.loading  = false;
@@ -292,6 +297,33 @@ function LogIncident() {
       this.customTypeInput = '';
     },
 
+    syncRegionClasses() {
+      this.$nextTick(() => {
+        document.querySelectorAll('.head-diagram__svg-wrapper').forEach((wrapper, i) => {
+          const vk = this.views[i]?.key;
+          if (!vk || !this.incident) return;
+          const sel = this.incident.painLocations[vk].regions;
+          wrapper.querySelectorAll('.head-region').forEach(p => {
+            p.classList.toggle('selected', sel.includes(p.dataset.region));
+          });
+        });
+      });
+    },
+
+    startEdit() {
+      this._incidentSnapshot = JSON.parse(JSON.stringify(this.incident));
+      this.isEditing = true;
+    },
+
+    cancelEdit() {
+      if (this._incidentSnapshot) {
+        this.incident = JSON.parse(JSON.stringify(this._incidentSnapshot));
+        this._incidentSnapshot = null;
+        this.syncRegionClasses();
+      }
+      this.isEditing = false;
+    },
+
     autoSave() { AutoSave.queue(this.incident); },
 
     async captureLocation() {
@@ -319,8 +351,12 @@ function LogIncident() {
 
     async saveIncident() {
       this.saving = true;
-      try { await App.saveIncident(this.incident); Toast.success('Saved.'); }
-      finally { this.saving = false; }
+      try {
+        await App.saveIncident(this.incident);
+        this._incidentSnapshot = null;
+        this.isEditing = false;
+        Toast.success('Saved.');
+      } finally { this.saving = false; }
     },
 
     async confirmDelete() {
@@ -536,6 +572,11 @@ function Settings() {
     async init() {
       this.loading = false;
       this.notifPermission = Notifications.permission();
+      // Ensure new settings fields exist for users with older settings.json
+      const settings = Alpine.store('data').settings;
+      if (settings && !settings.customAffectedActivities) {
+        settings.customAffectedActivities = [];
+      }
       const manifest = Alpine.store('data').manifest;
       if (manifest?.incidents?.length > 0) {
         this.importDone = true;

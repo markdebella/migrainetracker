@@ -218,6 +218,13 @@
 .head-outline { fill: none; stroke: rgba(255,255,255,0.30); stroke-width: 1.5; pointer-events: none; }
 .head-detail  { fill: none; stroke: rgba(255,255,255,0.14); stroke-width: 1;   pointer-events: none; }
 
+/* View-mode: disable interaction on diagram */
+.head-diagram__svg-wrapper.view-mode { cursor: default; }
+.head-diagram__svg-wrapper.view-mode .head-region {
+  cursor: default;
+  pointer-events: none;
+}
+
 /* pain pin dots */
 .pain-pin {
   fill: var(--danger);
@@ -322,7 +329,7 @@
 /* Treatment effectiveness bar */
 .treatment-bar-list { display: flex; flex-direction: column; gap: var(--space-sm); }
 .treatment-bar-item { display: flex; align-items: center; gap: var(--space-md); }
-.treatment-bar-item__name { font-size: 0.85rem; color: var(--text-secondary); min-width: 140px; flex-shrink: 0; }
+.treatment-bar-item__name { font-size: 0.85rem; color: var(--text-secondary); min-width: 100px; flex-shrink: 0; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .treatment-bar-item__bar { flex: 1; height: 8px; background: var(--bg-elevated); border-radius: var(--radius-full); overflow: hidden; }
 .treatment-bar-item__fill { height: 100%; border-radius: var(--radius-full); background: var(--success); }
 .treatment-bar-item__pct { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); min-width: 36px; text-align: right; }
