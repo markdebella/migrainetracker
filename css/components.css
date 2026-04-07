@@ -207,15 +207,16 @@
   pointer-events: none;
 }
 .head-region {
-  fill: transparent;
-  stroke: transparent;
-  transition: fill var(--transition), stroke var(--transition);
+  fill: rgba(255, 255, 255, 0.05);
+  stroke: rgba(255, 255, 255, 0.20);
+  stroke-width: 0.75;
   cursor: pointer;
+  transition: fill 120ms ease, stroke 120ms ease;
 }
-.head-region:hover { fill: rgba(124,106,255,0.18); stroke: rgba(124,106,255,0.4); stroke-width: 1.5; }
-.head-region.selected { fill: rgba(124,106,255,0.55); stroke: rgba(255,255,255,0.7); stroke-width: 1.5; }
-.head-outline { fill: none; stroke: rgba(255,255,255,0.25); stroke-width: 1.5; pointer-events: none; }
-.head-detail  { fill: none; stroke: rgba(255,255,255,0.12); stroke-width: 1; pointer-events: none; }
+.head-region:hover    { fill: rgba(124,106,255,0.28); stroke: rgba(124,106,255,0.75); stroke-width: 1.5; }
+.head-region.selected { fill: rgba(124,106,255,0.60); stroke: rgba(200,190,255,0.90); stroke-width: 1.5; }
+.head-outline { fill: none; stroke: rgba(255,255,255,0.30); stroke-width: 1.5; pointer-events: none; }
+.head-detail  { fill: none; stroke: rgba(255,255,255,0.14); stroke-width: 1;   pointer-events: none; }
 
 /* pain pin dots */
 .pain-pin {
