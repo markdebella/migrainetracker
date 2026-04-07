@@ -35,7 +35,7 @@
   <script src="js/view-components.js"></script>
   <script src="js/app.js"></script>
 </head>
-<body x-cloak>
+<body x-data="{}" x-cloak>
 
   <!-- ── Sign-in screen (shown when not signed in) ───────────────────────── -->
   <div x-show="$store.auth.status !== 'signed_in' && !$store.data.loading"
