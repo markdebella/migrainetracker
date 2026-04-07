@@ -2,11 +2,11 @@
 
   <!-- Zones traced from user-created mask PNGs (Layer 12-17) -->
 
-  <path class="head-region" data-region="back_crown_right" d="M 251 -94 L 245 -79 L 247 180 L 257 186 L 335 182 L 445 167 L 443 39 L 412 -25 L 392 -47 L 356 -70 L 314 -85 Z"/>
-  <path class="head-region" data-region="back_crown_left" d="M 242 -92 L 203 -90 L 142 -73 L 107 -53 L 82 -29 L 49 31 L 43 165 L 87 176 L 173 183 L 244 178 L 248 87 Z"/>
-  <path class="head-region" data-region="back_occipital_right" d="M 449 168 L 246 186 L 250 426 L 386 421 L 415 375 L 430 316 L 455 275 L 467 192 Z"/>
-  <path class="head-region" data-region="back_occipital_left" d="M 46 170 L 26 193 L 35 266 L 46 299 L 66 326 L 75 369 L 99 416 L 167 429 L 246 431 L 247 187 L 99 180 Z"/>
-  <path class="head-region" data-region="back_neck_right" d="M 372 422 L 299 430 L 254 428 L 249 434 L 246 593 L 252 611 L 301 604 L 360 581 L 382 566 L 419 525 L 420 517 L 395 487 Z"/>
-  <path class="head-region" data-region="back_neck_left" d="M 120 423 L 106 469 L 72 520 L 74 527 L 104 560 L 148 589 L 201 608 L 245 612 L 245 448 L 249 429 L 206 431 Z"/>
+  <path class="head-region" data-region="back_crown_right" d="M 251 -94 L 245 -79 L 245 39 L 249 87 L 247 180 L 257 186 L 273 182 L 335 182 L 426 173 L 445 167 L 443 39 L 434 12 L 412 -25 L 392 -47 L 356 -70 L 314 -85 Z"/>
+  <path class="head-region" data-region="back_crown_left" d="M 242 -92 L 203 -90 L 142 -73 L 107 -53 L 82 -29 L 60 4 L 49 31 L 45 55 L 43 165 L 87 176 L 173 183 L 235 183 L 244 178 L 247 172 L 248 87 L 244 41 L 246 -85 Z"/>
+  <path class="head-region" data-region="back_occipital_right" d="M 449 168 L 337 182 L 246 186 L 246 422 L 250 426 L 301 428 L 359 420 L 386 421 L 394 413 L 415 375 L 430 316 L 448 295 L 455 275 L 467 192 Z"/>
+  <path class="head-region" data-region="back_occipital_left" d="M 46 170 L 26 193 L 35 266 L 46 299 L 66 326 L 75 369 L 99 416 L 115 422 L 167 429 L 246 431 L 247 187 L 99 180 Z"/>
+  <path class="head-region" data-region="back_neck_right" d="M 372 422 L 334 424 L 299 430 L 254 428 L 249 434 L 246 445 L 246 593 L 252 611 L 301 604 L 335 593 L 360 581 L 382 566 L 419 525 L 420 517 L 395 487 Z"/>
+  <path class="head-region" data-region="back_neck_left" d="M 120 423 L 106 469 L 93 494 L 72 520 L 74 527 L 104 560 L 148 589 L 201 608 L 245 612 L 248 608 L 245 595 L 245 448 L 249 429 L 206 431 L 185 427 L 162 428 Z"/>
 
 </svg>
