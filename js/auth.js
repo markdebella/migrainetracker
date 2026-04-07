@@ -2,103 +2,117 @@
  * auth.js — Google Identity Services token management
  *
  * Flow:
- *  1. initAuth()      — called on app boot; sets up the token client (no popup)
- *  2. signIn()        — called on button click; triggers Google popup
- *  3. signOut()       — revokes token, clears state
- *  4. Auto-refresh    — silent re-request at 55-min mark before expiry
+ *  1. init()       — page load: sets up both GIS APIs, attempts silent sign-in
+ *  2. Silent path  — google.accounts.id.prompt() fires silently if Google session
+ *                    is active; callback then requests Drive token with prompt:''
+ *  3. Manual path  — user clicks Sign In → requestAccessToken({ prompt:'' })
+ *                    (skips account picker if Google session is active)
+ *  4. signOut()    — revokes token, disables auto-select, clears state
+ *  5. Auto-refresh — silent re-request 5 min before expiry
  */
 
 const Auth = (() => {
-  let tokenClient = null;
-  let tokenData   = null;  // { access_token, expires_at }
+  let tokenClient  = null;
+  let tokenData    = null;   // { access_token, expires_at }
   let refreshTimer = null;
+  let gapiReady    = false;
 
-  /** Called when GIS delivers a token (initial or refresh) */
+  /** Called when the OAuth2 token client delivers a token */
   function handleToken(response) {
     if (response.error) {
-      // Silent auto-login failed — just show the sign-in button, no error toast
+      // Silent attempt failed — leave sign-in button visible, no error shown
       Alpine.store('auth').status = 'signed_out';
       return;
     }
 
-    const expiresAt = Date.now() + (response.expires_in - 60) * 1000; // 60s safety margin
+    const expiresAt = Date.now() + (response.expires_in - 60) * 1000;
     tokenData = { access_token: response.access_token, expires_at: expiresAt };
 
-    // Apply to GAPI
     gapi.client.setToken({ access_token: response.access_token });
-
-    // Remember that this user has signed in (enables silent auto-login next visit)
     localStorage.setItem('mt_signed_in', '1');
 
-    // Update Alpine store
     Alpine.store('auth').status = 'signed_in';
 
-    // Schedule silent refresh 5 minutes before expiry
+    // Schedule silent token refresh 5 min before expiry
     const refreshIn = expiresAt - Date.now() - 5 * 60 * 1000;
     clearTimeout(refreshTimer);
-    refreshTimer = setTimeout(silentRefresh, Math.max(refreshIn, 0));
+    refreshTimer = setTimeout(() => {
+      if (tokenClient) tokenClient.requestAccessToken({ prompt: '' });
+    }, Math.max(refreshIn, 0));
 
-    // Trigger app bootstrap (Drive folder + manifest) on first sign-in
     App.onSignedIn();
   }
 
-  function silentRefresh() {
-    if (tokenClient) {
-      tokenClient.requestAccessToken({ prompt: '' });
-    }
+  /** Called by google.accounts.id (One Tap / silent sign-in) */
+  function handleCredential(/* credentialResponse */) {
+    // Identity confirmed — now silently get the Drive access token.
+    // No popup needed because Google already verified the session.
+    if (tokenClient) tokenClient.requestAccessToken({ prompt: '' });
   }
 
   return {
-    /** Call once on page load after GIS script is ready */
     init() {
+      // ── 1. OAuth2 token client (Drive access) ───────────────────────────
       tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CONFIG.clientId,
-        scope: 'https://www.googleapis.com/auth/drive.file',
-        callback: handleToken,
+        scope:     'https://www.googleapis.com/auth/drive.file',
+        callback:  handleToken,
       });
 
-      // Load GAPI client (needed for Drive API calls)
+      // ── 2. ID library (One Tap / silent sign-in) ─────────────────────────
+      // auto_select: true means if the user has an active Google session and
+      // has previously signed in, the callback fires without any UI.
+      google.accounts.id.initialize({
+        client_id:           CONFIG.clientId,
+        auto_select:         true,
+        callback:            handleCredential,
+        cancel_on_tap_outside: false,
+      });
+
+      // ── 3. Load GAPI, then attempt silent sign-in ─────────────────────────
       gapi.load('client', async () => {
         await gapi.client.init({});
+        gapiReady = true;
         Alpine.store('auth').gapiReady = true;
 
-        // Auto-login: if the user has signed in before, attempt a silent token
-        // request. Works as long as their Google session is still active (typically
-        // 30+ days). Falls back silently to the sign-in button if it fails.
         if (localStorage.getItem('mt_signed_in')) {
-          tokenClient.requestAccessToken({ prompt: '' });
+          // Try One Tap silent sign-in first (works even when third-party
+          // cookies are restricted, because it uses the Google session).
+          google.accounts.id.prompt((notification) => {
+            // If One Tap can't be shown (e.g. user dismissed it too many
+            // times), fall back to a direct silent token request.
+            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+              tokenClient.requestAccessToken({ prompt: '' });
+            }
+          });
         }
       });
     },
 
-    /** Open Google sign-in popup */
+    /** Manual sign-in — called when user clicks the Sign In button */
     signIn() {
-      tokenClient.requestAccessToken({ prompt: 'select_account' });
+      // prompt:'' skips the account picker if Google already knows the user.
+      // Google will only show the full picker when it genuinely needs it.
+      tokenClient.requestAccessToken({ prompt: '' });
     },
 
-    /** Revoke the current token and reset state */
     signOut() {
       if (tokenData?.access_token) {
         google.accounts.oauth2.revoke(tokenData.access_token, () => {});
       }
+      google.accounts.id.disableAutoSelect();   // prevent silent re-login
       tokenData = null;
       clearTimeout(refreshTimer);
       gapi.client.setToken(null);
-      Alpine.store('auth').status = 'signed_out';
-      Alpine.store('auth').user   = null;
-      Alpine.store('data').manifest = null;
+      Alpine.store('auth').status    = 'signed_out';
+      Alpine.store('auth').user      = null;
+      Alpine.store('data').manifest  = null;
       Alpine.store('data').activeIncident = null;
       localStorage.removeItem('mt_folder_id');
       localStorage.removeItem('mt_signed_in');
     },
 
-    /** Returns the raw access token string, or null */
-    getToken() {
-      return tokenData?.access_token ?? null;
-    },
-
-    isSignedIn() {
-      return !!tokenData?.access_token && Date.now() < (tokenData?.expires_at ?? 0);
-    },
+    getToken()   { return tokenData?.access_token ?? null; },
+    isSignedIn() { return !!tokenData?.access_token && Date.now() < (tokenData?.expires_at ?? 0); },
   };
 })();
