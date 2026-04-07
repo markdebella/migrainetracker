@@ -1,12 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 637" role="img" aria-label="Back head view">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 656 638" role="img" aria-label="Back head view">
 
-  <!-- Zones traced from user-created mask PNGs (Layer 12-17) -->
-
-  <path class="head-region" data-region="back_crown_right" d="M 251 -94 L 245 -79 L 245 39 L 249 87 L 247 180 L 257 186 L 273 182 L 335 182 L 426 173 L 445 167 L 443 39 L 434 12 L 412 -25 L 392 -47 L 356 -70 L 314 -85 Z"/>
-  <path class="head-region" data-region="back_crown_left" d="M 242 -92 L 203 -90 L 142 -73 L 107 -53 L 82 -29 L 60 4 L 49 31 L 45 55 L 43 165 L 87 176 L 173 183 L 235 183 L 244 178 L 247 172 L 248 87 L 244 41 L 246 -85 Z"/>
-  <path class="head-region" data-region="back_occipital_right" d="M 449 168 L 337 182 L 246 186 L 246 422 L 250 426 L 301 428 L 359 420 L 386 421 L 394 413 L 415 375 L 430 316 L 448 295 L 455 275 L 467 192 Z"/>
-  <path class="head-region" data-region="back_occipital_left" d="M 46 170 L 26 193 L 35 266 L 46 299 L 66 326 L 75 369 L 99 416 L 115 422 L 167 429 L 246 431 L 247 187 L 99 180 Z"/>
-  <path class="head-region" data-region="back_neck_right" d="M 372 422 L 334 424 L 299 430 L 254 428 L 249 434 L 246 445 L 246 593 L 252 611 L 301 604 L 335 593 L 360 581 L 382 566 L 419 525 L 420 517 L 395 487 Z"/>
-  <path class="head-region" data-region="back_neck_left" d="M 120 423 L 106 469 L 93 494 L 72 520 L 74 527 L 104 560 L 148 589 L 201 608 L 245 612 L 248 608 L 245 595 L 245 448 L 249 429 L 206 431 L 185 427 L 162 428 Z"/>
+  <path class="head-region" data-region="back_crown_right" d="M 339 -89 L 333 -74 L 333 44 L 337 92 L 335 185 L 345 191 L 361 187 L 423 187 L 514 178 L 533 172 L 531 44 L 522 17 L 500 -20 L 480 -42 L 444 -65 L 402 -80 Z"/>
+  <path class="head-region" data-region="back_crown_left" d="M 330 -87 L 291 -85 L 230 -68 L 195 -48 L 170 -24 L 148 9 L 137 36 L 133 60 L 131 170 L 175 181 L 261 188 L 323 188 L 332 183 L 335 177 L 336 92 L 332 46 L 334 -80 Z"/>
+  <path class="head-region" data-region="back_occipital_right" d="M 537 173 L 425 187 L 334 191 L 334 427 L 338 431 L 389 433 L 447 425 L 474 426 L 482 418 L 503 380 L 518 321 L 536 300 L 543 280 L 555 197 Z"/>
+  <path class="head-region" data-region="back_occipital_left" d="M 134 175 L 114 198 L 123 271 L 134 304 L 154 331 L 163 374 L 187 421 L 203 427 L 255 434 L 334 436 L 335 192 L 187 185 Z"/>
+  <path class="head-region" data-region="back_neck_right" d="M 460 427 L 422 429 L 387 435 L 342 433 L 337 439 L 334 450 L 334 598 L 340 616 L 389 609 L 423 598 L 448 586 L 470 571 L 507 530 L 508 522 L 483 492 Z"/>
+  <path class="head-region" data-region="back_neck_left" d="M 208 428 L 194 474 L 181 499 L 160 525 L 162 532 L 192 565 L 236 594 L 289 613 L 333 617 L 336 613 L 333 600 L 333 453 L 337 434 L 294 436 L 273 432 L 250 433 Z"/>
 
 </svg>
