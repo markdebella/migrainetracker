@@ -156,6 +156,7 @@ function LogIncident() {
     newProdrome: '',
     newSymptom: '',
     newTrigger: '',
+    newAffectedActivity: '',
     customProdromeItems: [],
     customSymptomItems: [],
     customTriggerItems: [],
@@ -295,6 +296,22 @@ function LogIncident() {
       }
       this.incident.type = 'custom_' + label.toLowerCase().replace(/\s+/g,'_');
       this.customTypeInput = '';
+    },
+
+    addCustomActivity() {
+      const label = this.newAffectedActivity.trim();
+      if (!label) return;
+      const settings = Alpine.store('data').settings;
+      if (!settings.customAffectedActivities) settings.customAffectedActivities = [];
+      if (!settings.customAffectedActivities.includes(label)) {
+        settings.customAffectedActivities.push(label);
+        Drive.saveSettings(settings);
+      }
+      const id = 'custom_act_' + label.toLowerCase().replace(/\s+/g,'_');
+      if (!this.incident.affectedActivities.includes(id)) {
+        this.incident.affectedActivities.push(id);
+      }
+      this.newAffectedActivity = '';
     },
 
     syncRegionClasses() {

@@ -248,6 +248,13 @@
           </button>
         </template>
       </div>
+      <div class="add-custom-input" x-show="isEditing">
+        <input type="text" class="form-input" x-model="newAffectedActivity"
+               placeholder="Add custom activity…" maxlength="60" style="flex:1"
+               @keydown.enter.prevent="addCustomActivity()">
+        <button type="button" class="btn btn-secondary btn-sm"
+                @click="addCustomActivity()" :disabled="!newAffectedActivity.trim()">Add</button>
+      </div>
     </div>
 
     <!-- ── Notes ─────────────────────────────────────────────────────── -->
