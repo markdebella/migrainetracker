@@ -124,71 +124,116 @@ const Charts = (() => {
     },
 
     /**
-     * Trends: avg pain and avg duration per month (dual-axis line chart).
+     * Trends: per-incident pain and duration (dual-axis line chart).
+     * Crosshair on hover, click to navigate to incident.
      * @param {HTMLCanvasElement} canvas
      * @param {Array} incidents  — full incident objects
      */
     trends(canvas, incidents) {
-      // Group by month
-      const byMonth = {};
-      for (const inc of incidents) {
-        if (!inc.startTime) continue;
-        const d  = new Date(inc.startTime);
-        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-        if (!byMonth[key]) byMonth[key] = { pains: [], durations: [] };
-        if (inc.peakPainLevel)  byMonth[key].pains.push(inc.peakPainLevel);
-        if (inc.durationMinutes) byMonth[key].durations.push(inc.durationMinutes);
-      }
+      const sorted = [...incidents]
+        .filter(i => i.startTime)
+        .sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
 
-      const keys    = Object.keys(byMonth).sort();
-      const labels  = keys.map(k => { const [y,m] = k.split('-'); return new Date(+y,+m-1,1).toLocaleDateString('en-US',{month:'short',year:'2-digit'}); });
-      const avgPain = keys.map(k => {
-        const p = byMonth[k].pains;
-        return p.length ? (p.reduce((s,v)=>s+v,0)/p.length) : null;
+      const labels = sorted.map(i => {
+        const d = new Date(i.startTime);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
       });
-      const avgDur  = keys.map(k => {
-        const d = byMonth[k].durations;
-        return d.length ? (d.reduce((s,v)=>s+v,0)/d.length/60) : null; // hours
-      });
+      const painData = sorted.map(i => i.peakPainLevel ?? null);
+      const durData  = sorted.map(i => i.durationMinutes ? i.durationMinutes / 60 : null);
 
-      return new Chart(canvas, {
+      // Crosshair vertical line plugin
+      const crosshairPlugin = {
+        id: 'crosshair',
+        afterDraw(chart) {
+          if (chart._crosshairX == null) return;
+          const { ctx, chartArea: { top, bottom } } = chart;
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(chart._crosshairX, top);
+          ctx.lineTo(chart._crosshairX, bottom);
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgba(144,144,176,0.5)';
+          ctx.stroke();
+          ctx.restore();
+        },
+      };
+
+      const chart = new Chart(canvas, {
         type: 'line',
         data: {
           labels,
           datasets: [
             {
-              label: 'Avg Pain',
-              data: avgPain,
+              label: 'Pain',
+              data: painData,
               borderColor: '#ef4444',
               backgroundColor: 'rgba(239,68,68,0.08)',
               tension: 0.3,
               fill: true,
               yAxisID: 'y',
               pointRadius: 4,
+              pointHoverRadius: 7,
+              pointBorderColor: '#fff',
+              pointBorderWidth: 1,
             },
             {
-              label: 'Avg Duration (h)',
-              data: avgDur,
+              label: 'Duration (h)',
+              data: durData,
               borderColor: accentColor,
               backgroundColor: 'rgba(124,106,255,0.08)',
               tension: 0.3,
               fill: true,
               yAxisID: 'y2',
               pointRadius: 4,
+              pointHoverRadius: 7,
+              pointBorderColor: '#fff',
+              pointBorderWidth: 1,
             },
           ],
         },
         options: {
           ...baseOptions,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          onHover(event, elements, chart) {
+            chart._crosshairX = elements.length ? elements[0].element.x : null;
+            canvas.style.cursor = elements.length ? 'pointer' : 'default';
+          },
+          onClick(event, elements) {
+            if (!elements.length) return;
+            const idx = elements[0].index;
+            const inc = sorted[idx];
+            if (inc?.id) Router.go('log', { id: inc.id });
+          },
           plugins: {
             ...baseOptions.plugins,
             legend: { display: true, labels: { color: '#9090b0', boxWidth: 12 } },
             tooltip: {
               ...baseOptions.plugins.tooltip,
+              mode: 'index',
+              intersect: false,
               callbacks: {
-                label: ctx => ctx.datasetIndex === 0
-                  ? `Avg Pain: ${ctx.parsed.y?.toFixed(1)}`
-                  : `Avg Duration: ${ctx.parsed.y?.toFixed(1)}h`,
+                title: ctx => {
+                  const idx = ctx[0]?.dataIndex;
+                  if (idx == null) return '';
+                  const inc = sorted[idx];
+                  const d = new Date(inc.startTime);
+                  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                },
+                label: ctx => {
+                  if (ctx.datasetIndex === 0) return `Pain: ${ctx.parsed.y ?? '—'}`;
+                  return `Duration: ${ctx.parsed.y?.toFixed(1) ?? '—'}h`;
+                },
+                afterBody: ctx => {
+                  const idx = ctx[0]?.dataIndex;
+                  if (idx == null) return '';
+                  const inc = sorted[idx];
+                  const type = CONFIG.attackTypes.find(t => t.id === inc.type)?.label ?? inc.type ?? '';
+                  return type ? `Type: ${type}` : '';
+                },
+                footer: () => 'Click to view incident',
               },
             },
           },
@@ -198,7 +243,16 @@ const Charts = (() => {
             y2: { ...baseOptions.scales.y, min: 0, position: 'right', title: { display: true, text: 'Hours', color: '#9090b0' }, grid: { drawOnChartArea: false } },
           },
         },
+        plugins: [crosshairPlugin],
       });
+
+      // Clear crosshair on mouse leave
+      canvas.addEventListener('mouseleave', () => {
+        chart._crosshairX = null;
+        chart.draw();
+      });
+
+      return chart;
     },
 
     /**
