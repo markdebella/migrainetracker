@@ -12,18 +12,29 @@
  */
 
 const Auth = (() => {
-  let tokenClient  = null;
-  let tokenData    = null;   // { access_token, expires_at }
-  let refreshTimer = null;
-  let gapiReady    = false;
+  let tokenClient       = null;
+  let tokenData         = null;   // { access_token, expires_at }
+  let refreshTimer      = null;
+  let gapiReady         = false;
+  let _afterCredential  = false;  // true when token request originated from One Tap
 
   /** Called when the OAuth2 token client delivers a token */
   function handleToken(response) {
     if (response.error) {
-      // Silent attempt failed — leave sign-in button visible, no error shown
+      if (_afterCredential) {
+        // One Tap confirmed identity but the silent Drive-scope request failed
+        // (common in Edge with tracking prevention, or on first consent).
+        // Automatically retry with a visible OAuth popup so the user doesn't
+        // get stuck — they'll see a brief Google consent window and be in.
+        _afterCredential = false;
+        tokenClient.requestAccessToken({});
+        return;
+      }
+      // Silent refresh or manual attempt failed — show sign-in button.
       Alpine.store('auth').status = 'signed_out';
       return;
     }
+    _afterCredential = false;
 
     const expiresAt = Date.now() + (response.expires_in - 60) * 1000;
     tokenData = { access_token: response.access_token, expires_at: expiresAt };
@@ -45,8 +56,9 @@ const Auth = (() => {
 
   /** Called by google.accounts.id (One Tap / silent sign-in) */
   function handleCredential(/* credentialResponse */) {
-    // Identity confirmed — now silently get the Drive access token.
-    // No popup needed because Google already verified the session.
+    // Identity confirmed — try to get the Drive token silently first.
+    // If that fails, handleToken will retry with a visible popup.
+    _afterCredential = true;
     if (tokenClient) tokenClient.requestAccessToken({ prompt: '' });
   }
 
