@@ -163,8 +163,8 @@ function LogIncident() {
 
     // ── Head Diagram (merged) ──────────────────────────────────────────
     views: [
-      { key: 'front', label: 'Front', imgSrc: 'img/head-front.png', viewBox: '0 0 656 680' },
-      { key: 'back',  label: 'Back',  imgSrc: 'img/head-back.png',  viewBox: '0 0 656 638' },
+      { key: 'front', label: 'Front', imgSrc: 'img/head-front.png', viewBox: '0 0 470 740' },
+      { key: 'back',  label: 'Back',  imgSrc: 'img/head-back.png',  viewBox: '0 0 470 740' },
     ],
     svgContent: { front: '', back: '' },
     regionLabels: {
