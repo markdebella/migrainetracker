@@ -479,6 +479,7 @@ a { color: var(--accent); text-decoration: none; }
   max-width: 300px;
 }
 .signin-screen__privacy a { color: var(--text-muted); text-decoration: underline; }
+.signin-screen__version { font-size: 0.65rem; color: var(--text-muted); opacity: 0.5; letter-spacing: 0.05em; margin-top: var(--space-sm); }
 
 /* ── Dividers ────────────────────────────────────────────────────────────── */
 .divider {
