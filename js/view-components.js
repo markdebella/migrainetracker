@@ -551,8 +551,8 @@ function Analytics() {
         const d = new Date(inc.startTime);
         headacheDays.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
       }
-      // 26 weeks (6 months) — fits on mobile without scrolling
-      const cellSize = 11, gap = 2, padLeft = 28, padTop = 16, weeks = 26;
+      // 52 weeks (full year) — SVG scales to fit container width
+      const cellSize = 11, gap = 2, padLeft = 28, padTop = 16, weeks = 52;
       const width  = weeks * (cellSize + gap) + padLeft;
       const height = 7 * (cellSize + gap) + padTop;
       const today = new Date();

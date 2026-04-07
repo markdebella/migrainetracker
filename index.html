@@ -203,7 +203,7 @@
           const key = `views/${view}.html`;
           if (!this._cache[key]) {
             try {
-              const r = await fetch(key);
+              const r = await fetch(key + '?v=' + CONFIG.appVersion);
               if (r.ok) {
                 this._cache[key] = await r.text();
               } else {
