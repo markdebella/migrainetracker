@@ -8,10 +8,10 @@
   <title>Migraine Tracker</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 
-  <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/charts.css">
+  <!-- Stylesheets (versioned to bust browser cache) -->
+  <link rel="stylesheet" href="css/main.css?v=16.12">
+  <link rel="stylesheet" href="css/components.css?v=16.12">
+  <link rel="stylesheet" href="css/charts.css?v=16.12">
 
   <!-- Alpine.js — loaded before body so stores are ready -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -23,18 +23,18 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://apis.google.com/js/api.js" async defer></script>
 
-  <!-- App scripts (order matters) -->
-  <script src="config.js"></script>
-  <script src="js/utils.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/drive.js"></script>
-  <script src="js/manifest.js"></script>
-  <script src="js/seed.js"></script>
-  <script src="js/notifications.js"></script>
-  <script src="js/charts.js"></script>
-  <script src="js/export-csv.js"></script>
-  <script src="js/view-components.js"></script>
-  <script src="js/app.js"></script>
+  <!-- App scripts (order matters, versioned to bust browser cache) -->
+  <script src="config.js?v=16.12"></script>
+  <script src="js/utils.js?v=16.12"></script>
+  <script src="js/auth.js?v=16.12"></script>
+  <script src="js/drive.js?v=16.12"></script>
+  <script src="js/manifest.js?v=16.12"></script>
+  <script src="js/seed.js?v=16.12"></script>
+  <script src="js/notifications.js?v=16.12"></script>
+  <script src="js/charts.js?v=16.12"></script>
+  <script src="js/export-csv.js?v=16.12"></script>
+  <script src="js/view-components.js?v=16.12"></script>
+  <script src="js/app.js?v=16.12"></script>
 </head>
 <body x-data="{}" x-cloak>
 
