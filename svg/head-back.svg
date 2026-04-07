@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 740" role="img" aria-label="Back head view">
 
-  <path class="head-region" data-region="back_crown_right" d="M 229 17 L 286 23 L 334 37 L 370 57 L 394 79 L 427 137 L 432 161 L 434 275 L 234 289 L 234 17 Z"/>
-  <path class="head-region" data-region="back_crown_left" d="M 234 17 L 234 289 L 32 277 L 35 153 L 42 129 L 66 89 L 92 61 L 129 39 L 175 25 L 224 17 Z"/>
-  <path class="head-region" data-region="back_occipital_right" d="M 454 305 L 436 405 L 414 435 L 405 477 L 392 507 L 374 533 L 360 535 L 234 537 L 234 289 Z"/>
-  <path class="head-region" data-region="back_occipital_left" d="M 234 289 L 234 537 L 106 533 L 92 531 L 77 511 L 61 473 L 52 431 L 30 401 L 14 303 Z"/>
-  <path class="head-region" data-region="back_neck_right" d="M 378 591 L 407 629 L 407 635 L 377 669 L 347 691 L 300 711 L 247 721 L 234 721 L 234 537 Z"/>
-  <path class="head-region" data-region="back_neck_left" d="M 234 537 L 234 721 L 213 721 L 170 713 L 121 691 L 93 671 L 59 633 L 90 587 Z"/>
+  <path class="head-region" data-region="back_crown_right" d="M 306 17 L 339 29 L 373 49 L 400 75 L 420 107 L 437 155 L 440 273 L 234 289 L 234 17 Z"/>
+  <path class="head-region" data-region="back_crown_left" d="M 234 17 L 234 289 L 15 287 L 26 275 L 28 165 L 34 133 L 47 105 L 74 67 L 97 47 L 128 29 L 164 17 Z"/>
+  <path class="head-region" data-region="back_occipital_right" d="M 458 297 L 459 317 L 442 407 L 424 429 L 405 495 L 234 537 L 234 289 Z"/>
+  <path class="head-region" data-region="back_occipital_left" d="M 234 289 L 234 537 L 63 497 L 48 439 L 24 403 L 8 305 Z"/>
+  <path class="head-region" data-region="back_neck_right" d="M 371 549 L 390 599 L 412 625 L 412 639 L 390 667 L 363 691 L 328 711 L 300 721 L 234 721 L 234 537 Z"/>
+  <path class="head-region" data-region="back_neck_left" d="M 234 537 L 234 721 L 163 721 L 100 687 L 54 637 L 55 623 L 84 585 L 96 547 Z"/>
 
 </svg>
