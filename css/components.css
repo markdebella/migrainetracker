@@ -194,7 +194,6 @@
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   overflow: hidden;
-  cursor: crosshair;
 }
 .head-diagram__svg-wrapper svg {
   width: 100%;
@@ -223,14 +222,27 @@
   pointer-events: none;
 }
 
-/* pain pin dots */
-.pain-pin {
-  fill: var(--danger);
-  stroke: rgba(255,255,255,0.6);
-  stroke-width: 1;
-  cursor: pointer;
+/* Draggable pain pin handles */
+.pain-pin-handle {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  touch-action: none;
+  z-index: 10;
+  user-select: none;
+  -webkit-user-select: none;
 }
-.pain-pin:hover { stroke-width: 2; }
+.pain-pin-handle.draggable {
+  pointer-events: all;
+  cursor: grab;
+}
+.pain-pin-handle.draggable:active {
+  cursor: grabbing;
+}
+.pain-pin-handle svg {
+  display: block;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));
+}
 
 /* ── Symptom Checklist ───────────────────────────────────────────────────── */
 .checklist { display: flex; flex-wrap: wrap; gap: var(--space-sm); }

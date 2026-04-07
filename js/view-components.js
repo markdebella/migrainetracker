@@ -203,14 +203,58 @@ function LogIncident() {
       return this.incident.painLocations[viewKey];
     },
 
-    handlePanelClick(event, viewKey) {
+    addPin(viewKey) {
+      if (!this.incident) return;
+      this._ensurePainLoc(viewKey).pins.push({ x: 0.5, y: 0.4 });
+    },
+
+    _dragging: null,
+    _lastPinTap: 0,
+    _lastPinKey: '',
+
+    pinPointerDown(event, viewKey, pinIdx) {
       if (!this.isEditing) return;
-      if (event.target.classList.contains('head-region')) return;
-      const wrapper = event.currentTarget;
+      event.preventDefault();
+      event.stopPropagation();
+
+      const wrapper = event.target.closest('.head-diagram__svg-wrapper');
+      if (!wrapper) return;
+
+      // Double-tap detection
+      const now = Date.now();
+      const tapKey = `${viewKey}_${pinIdx}`;
+      if (this._lastPinKey === tapKey && now - this._lastPinTap < 400) {
+        // Double-tap → remove
+        this._ensurePainLoc(viewKey).pins.splice(pinIdx, 1);
+        this._lastPinKey = '';
+        return;
+      }
+      this._lastPinTap = now;
+      this._lastPinKey = tapKey;
+
+      const el = event.target;
+      el.setPointerCapture(event.pointerId);
+
+      this._dragging = { viewKey, pinIdx, wrapper };
+    },
+
+    pinPointerMove(event) {
+      if (!this._dragging) return;
+      event.preventDefault();
+      const { viewKey, pinIdx, wrapper } = this._dragging;
       const rect = wrapper.getBoundingClientRect();
       const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
-      const y = Math.max(0, Math.min(1, (event.clientY - rect.top)  / rect.height));
-      if (this.incident) this._ensurePainLoc(viewKey).pins.push({ x, y });
+      const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+      const pins = this.incident.painLocations[viewKey]?.pins;
+      if (pins && pins[pinIdx]) {
+        pins[pinIdx].x = x;
+        pins[pinIdx].y = y;
+      }
+    },
+
+    pinPointerUp(event) {
+      if (!this._dragging) return;
+      this._dragging = null;
     },
 
     toggleRegion(viewKey, regionId) {
@@ -233,7 +277,7 @@ function LogIncident() {
     },
 
     removePin(viewKey, pinIdx) {
-      if (this.incident) this.incident.painLocations[viewKey]?.pins?.splice(pinIdx, 1);
+      this.incident?.painLocations[viewKey]?.pins?.splice(pinIdx, 1);
     },
 
     regionLabel(rid) {
