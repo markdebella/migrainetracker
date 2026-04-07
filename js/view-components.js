@@ -177,9 +177,9 @@ function LogIncident() {
       back_crown_left:'Left Crown', back_crown_right:'Right Crown',
       back_occipital_left:'Left Occipital', back_occipital_right:'Right Occipital',
       back_neck_left:'Left Neck', back_neck_right:'Right Neck',
-      // Legacy aliases from old zone naming
-      front_eye_left:'Left Face', front_eye_right:'Right Face',
-      front_cheek_left:'Left Face', front_cheek_right:'Right Face',
+      // Legacy labels from old zone naming
+      front_eye_left:'Left Eye', front_eye_right:'Right Eye',
+      front_cheek_left:'Left Cheek', front_cheek_right:'Right Cheek',
     },
     // Map old region IDs to current SVG data-region values
     _regionAlias: {
