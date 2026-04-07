@@ -65,17 +65,16 @@
     <div x-show="tab==='calendar'">
       <div class="chart-wrapper">
         <div class="chart-title">Headache Days</div>
-        <div class="cal-heatmap h-scroll" x-html="calendarSVG"></div>
-        <div style="display:flex;align-items:center;gap:var(--space-sm);margin-top:var(--space-md);font-size:0.78rem;color:var(--text-muted)">
-          <span>Fewer</span>
-          <span style="display:flex;gap:2px">
-            <span style="width:12px;height:12px;border-radius:2px;background:var(--bg-elevated);display:inline-block"></span>
-            <span style="width:12px;height:12px;border-radius:2px;background:rgba(124,106,255,.3);display:inline-block"></span>
-            <span style="width:12px;height:12px;border-radius:2px;background:rgba(124,106,255,.55);display:inline-block"></span>
-            <span style="width:12px;height:12px;border-radius:2px;background:rgba(124,106,255,.8);display:inline-block"></span>
-            <span style="width:12px;height:12px;border-radius:2px;background:#7c6aff;display:inline-block"></span>
+        <div class="cal-heatmap" x-html="calendarSVG"></div>
+        <div style="display:flex;align-items:center;gap:var(--space-md);margin-top:var(--space-md);font-size:0.78rem;color:var(--text-muted)">
+          <span style="display:flex;align-items:center;gap:var(--space-xs)">
+            <span style="width:12px;height:12px;border-radius:2px;background:var(--bg-elevated);display:inline-block;border:1px solid var(--border)"></span>
+            No headache
           </span>
-          <span>More</span>
+          <span style="display:flex;align-items:center;gap:var(--space-xs)">
+            <span style="width:12px;height:12px;border-radius:2px;background:#7c6aff;display:inline-block"></span>
+            Headache day
+          </span>
         </div>
       </div>
     </div>
@@ -200,70 +199,9 @@ function Analytics() {
     },
 
     // ── Calendar heatmap ────────────────────────────────────────────────
-
-    drawCalendar() {
-      if (!this.allIncidents?.length) {
-        this.calendarSVG = '<p style="color:var(--text-muted);padding:1rem">No incidents to display yet.</p>';
-        return;
-      }
-
-      // Build day → count map
-      const dayCount = {};
-      for (const inc of this.allIncidents) {
-        if (!inc.startTime) continue;
-        const d = new Date(inc.startTime);
-        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-        dayCount[key] = (dayCount[key] ?? 0) + 1;
-      }
-
-      // 52 weeks ending today
-      const cellSize = 12, gap = 2, pad = 28;
-      const today = new Date();
-      const weeks = 52;
-      const width  = weeks * (cellSize + gap) + pad;
-      const height = 7   * (cellSize + gap) + pad + 16; // +16 for month labels
-
-      // Find start Sunday
-      const start = new Date(today);
-      start.setDate(start.getDate() - (weeks * 7 - 1));
-      // Move to nearest previous Sunday
-      start.setDate(start.getDate() - start.getDay());
-
-      const cells  = [];
-      const months = {};
-      const cur    = new Date(start);
-      for (let w = 0; w < weeks; w++) {
-        for (let d = 0; d < 7; d++) {
-          const key  = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;
-          const cnt  = dayCount[key] ?? 0;
-          const lvl  = cnt === 0 ? 0 : cnt === 1 ? 1 : cnt === 2 ? 2 : cnt <= 3 ? 3 : 4;
-          const x    = w * (cellSize + gap) + pad;
-          const y    = d * (cellSize + gap) + 16;
-          const fill = ['var(--bg-elevated)','rgba(124,106,255,.3)','rgba(124,106,255,.55)','rgba(124,106,255,.8)','#7c6aff'][lvl];
-          cells.push(`<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" rx="2" fill="${fill}"><title>${key}: ${cnt} headache${cnt!==1?'s':''}</title></rect>`);
-
-          // Month label (first cell of each month)
-          if (d === 0 && cur.getDate() <= 7) {
-            const label = cur.toLocaleDateString('en-US', { month: 'short' });
-            months[x] = label;
-          }
-          cur.setDate(cur.getDate() + 1);
-        }
-      }
-
-      // Day labels
-      const dayLabels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
-        .map((l, i) => i % 2 === 1 ? `<text x="0" y="${i*(cellSize+gap)+16+cellSize}" font-size="9" fill="#5a5a78">${l}</text>` : '')
-        .join('');
-
-      const monthLabels = Object.entries(months)
-        .map(([x, l]) => `<text x="${x}" y="10" font-size="9" fill="#5a5a78">${l}</text>`)
-        .join('');
-
-      this.calendarSVG = `<svg viewBox="0 0 ${width} ${height}" style="min-width:${width}px">
-        ${monthLabels}${dayLabels}${cells.join('')}
-      </svg>`;
-    },
+    // NOTE: Active implementation is in js/view-components.js.
+    // This script block is inert (x-html does not execute scripts).
+    drawCalendar() {},
 
     // ── Triggers ────────────────────────────────────────────────────────
 

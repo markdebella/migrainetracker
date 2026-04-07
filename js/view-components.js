@@ -544,16 +544,17 @@ function Analytics() {
         this.calendarSVG = '<p style="color:var(--text-muted);padding:1rem">No incidents to display yet.</p>';
         return;
       }
-      const dayCount = {};
+      // Binary headache-day set (no intensity levels needed)
+      const headacheDays = new Set();
       for (const inc of this.allIncidents) {
         if (!inc.startTime) continue;
         const d = new Date(inc.startTime);
-        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-        dayCount[key] = (dayCount[key] ?? 0) + 1;
+        headacheDays.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
       }
-      const cellSize = 12, gap = 2, pad = 28, weeks = 52;
-      const width  = weeks * (cellSize + gap) + pad;
-      const height = 7   * (cellSize + gap) + pad + 16;
+      // 26 weeks (6 months) — fits on mobile without scrolling
+      const cellSize = 11, gap = 2, padLeft = 28, padTop = 16, weeks = 26;
+      const width  = weeks * (cellSize + gap) + padLeft;
+      const height = 7 * (cellSize + gap) + padTop;
       const today = new Date();
       const start = new Date(today);
       start.setDate(start.getDate() - (weeks * 7 - 1) - start.getDay());
@@ -561,20 +562,21 @@ function Analytics() {
       const cur = new Date(start);
       for (let w = 0; w < weeks; w++) {
         for (let d = 0; d < 7; d++) {
-          const key  = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;
-          const cnt  = dayCount[key] ?? 0;
-          const lvl  = cnt === 0 ? 0 : cnt === 1 ? 1 : cnt === 2 ? 2 : cnt <= 3 ? 3 : 4;
-          const x    = w * (cellSize + gap) + pad;
-          const y    = d * (cellSize + gap) + 16;
-          const fill = ['var(--bg-elevated)','rgba(124,106,255,.3)','rgba(124,106,255,.55)','rgba(124,106,255,.8)','#7c6aff'][lvl];
-          cells.push(`<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" rx="2" fill="${fill}"><title>${key}: ${cnt} headache${cnt!==1?'s':''}</title></rect>`);
+          const key = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;
+          const has = headacheDays.has(key);
+          const x = w * (cellSize + gap) + padLeft;
+          const y = d * (cellSize + gap) + padTop;
+          const future = cur > today;
+          const fill = future ? 'transparent' : (has ? '#7c6aff' : 'var(--bg-elevated)');
+          const stroke = future ? ' stroke="var(--border)" stroke-width="0.5"' : '';
+          cells.push(`<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" rx="2" fill="${fill}"${stroke}><title>${key}${has ? ': headache' : ''}</title></rect>`);
           if (d === 0 && cur.getDate() <= 7) months[x] = cur.toLocaleDateString('en-US', { month: 'short' });
           cur.setDate(cur.getDate() + 1);
         }
       }
-      const dayLabels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((l,i) => i%2===1 ? `<text x="0" y="${i*(cellSize+gap)+16+cellSize}" font-size="9" fill="#5a5a78">${l}</text>` : '').join('');
+      const dayLabels = ['','Mon','','Wed','','Fri',''].map((l,i) => l ? `<text x="0" y="${i*(cellSize+gap)+padTop+cellSize-1}" font-size="9" fill="#5a5a78">${l}</text>` : '').join('');
       const monthLabels = Object.entries(months).map(([x,l]) => `<text x="${x}" y="10" font-size="9" fill="#5a5a78">${l}</text>`).join('');
-      this.calendarSVG = `<svg viewBox="0 0 ${width} ${height}" style="min-width:${width}px">${monthLabels}${dayLabels}${cells.join('')}</svg>`;
+      this.calendarSVG = `<svg viewBox="0 0 ${width} ${height}" style="width:100%;max-width:${width}px">${monthLabels}${dayLabels}${cells.join('')}</svg>`;
     },
 
     drawTriggers() {
