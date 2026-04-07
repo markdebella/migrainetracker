@@ -93,6 +93,52 @@
       </div>
     </div>
 
+    <!-- ── Import History ───────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)" x-show="!importDone">
+      <div class="card__header"><span class="card__title">Import History</span></div>
+      <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:var(--space-md)">
+        Select your <strong>migraine-history.json</strong> file to upload your full history into Google Drive.
+        This only needs to be done once.
+      </p>
+
+      <div x-show="!importing">
+        <label class="btn btn-secondary" style="cursor:pointer;display:inline-flex;align-items:center;gap:var(--space-sm)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          Choose migraine-history.json
+          <input type="file" accept=".json,application/json" style="display:none"
+                 @change="startImport($event)">
+        </label>
+        <p class="form-hint" style="margin-top:var(--space-xs)" x-show="importError" x-text="importError" style="color:var(--danger)"></p>
+      </div>
+
+      <div x-show="importing" style="display:flex;flex-direction:column;gap:var(--space-sm)">
+        <div style="display:flex;align-items:center;gap:var(--space-md)">
+          <div class="spinner" style="width:20px;height:20px;border-width:2px"></div>
+          <span style="font-size:0.9rem;color:var(--text-secondary)" x-text="importStatus"></span>
+        </div>
+        <div style="height:6px;background:var(--bg-elevated);border-radius:var(--radius-full);overflow:hidden">
+          <div style="height:100%;background:var(--accent);border-radius:var(--radius-full);transition:width 0.3s ease"
+               :style="'width:' + importProgress + '%'"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:var(--space-md);border-color:var(--success)" x-show="importDone">
+      <div style="display:flex;align-items:center;gap:var(--space-md)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/><polyline points="9 12 12 15 16 10"/>
+        </svg>
+        <div>
+          <p style="font-size:0.9rem;font-weight:600;color:var(--success)">History imported successfully</p>
+          <p style="font-size:0.8rem;color:var(--text-muted)" x-text="importDoneMessage"></p>
+        </div>
+      </div>
+    </div>
+
     <!-- ── Export ──────────────────────────────────────────────────────── -->
     <div class="card" style="margin-bottom:var(--space-md)">
       <div class="card__header"><span class="card__title">Export Data</span></div>
@@ -159,6 +205,12 @@ function Settings() {
     loading: true,
     saving: false,
     exporting: false,
+    importing: false,
+    importProgress: 0,
+    importStatus: '',
+    importError: '',
+    importDone: false,
+    importDoneMessage: '',
     newAttackType: '',
     notifPermission: 'default',
 
@@ -167,6 +219,70 @@ function Settings() {
     async init() {
       this.loading = false;
       this.notifPermission = Notifications.permission();
+      // Hide import card if history already exists
+      const manifest = Alpine.store('data').manifest;
+      if (manifest && manifest.incidents && manifest.incidents.length > 0) {
+        this.importDone = true;
+        this.importDoneMessage = `${manifest.incidents.length} incidents already in Drive.`;
+      }
+    },
+
+    async startImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      this.importError = '';
+
+      let incidents;
+      try {
+        const text = await file.text();
+        incidents = JSON.parse(text);
+        if (!Array.isArray(incidents)) throw new Error('Expected a JSON array.');
+      } catch (e) {
+        this.importError = 'Invalid file: ' + e.message;
+        return;
+      }
+
+      this.importing = true;
+      this.importProgress = 0;
+      this.importStatus = `Uploading 0 of ${incidents.length}…`;
+
+      try {
+        await Drive.batchWriteIncidents(incidents, (done, total) => {
+          this.importProgress = Math.round((done / total) * 100);
+          this.importStatus = `Uploading ${done} of ${total}…`;
+        });
+
+        // Build and save manifest from imported incidents
+        const manifestIncidents = incidents.map(inc => ({
+          id: inc.id,
+          startTime: inc.startTime,
+          endTime: inc.endTime ?? null,
+          isActive: inc.isActive ?? false,
+          type: inc.type ?? 'migraine',
+          customTypeName: inc.customTypeName ?? null,
+          peakPainLevel: inc.peakPainLevel ?? null,
+          durationMinutes: inc.durationMinutes ?? null,
+        }));
+        // Sort newest first
+        manifestIncidents.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+
+        const manifest = { version: 1, updatedAt: new Date().toISOString(), incidents: manifestIncidents };
+        await Drive.saveManifest(manifest);
+
+        // Update in-memory stores so dashboard reflects immediately
+        Alpine.store('data').manifest = manifest;
+        Alpine.store('data').allIncidents = null; // clear cache so analytics reloads
+
+        this.importDoneMessage = `${incidents.length} incidents imported successfully.`;
+        this.importDone = true;
+        Toast.success(`Imported ${incidents.length} incidents.`);
+      } catch (e) {
+        console.error('Import failed:', e);
+        Toast.error('Import failed. Check your connection and try again.');
+        this.importError = 'Upload failed: ' + (e.message ?? 'unknown error');
+      } finally {
+        this.importing = false;
+      }
     },
 
     async save() {
