@@ -186,6 +186,8 @@ function LogIncident() {
           if (r.ok) this.svgContent[view.key] = await r.text();
         } catch { /* ignore */ }
       }
+      // Wait for Alpine to render the SVG HTML into the DOM
+      await this.$nextTick();
     },
 
     onSvgClick(event, viewKey) {
@@ -317,8 +319,9 @@ function LogIncident() {
           this.loading = false;
         }
       }
-      // Load SVG diagrams in the background
-      this.loadSVGs();
+      // Load SVG diagrams, then apply selected state for existing incidents
+      await this.loadSVGs();
+      if (!this.isNew) this.syncRegionClasses();
     },
 
     toInput(iso) { return Utils.toInputDateTime(iso); },
