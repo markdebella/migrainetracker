@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 740" role="img" aria-label="Back head view">
 
-  <path class="head-region" data-region="back_crown_right" d="M 240 17 L 234 32 L 234 150 L 238 198 L 236 291 L 246 297 L 262 293 L 324 293 L 415 284 L 434 278 L 432 150 L 423 123 L 401 86 L 381 64 L 345 41 L 303 26 Z"/>
-  <path class="head-region" data-region="back_crown_left" d="M 229 19 L 190 21 L 129 38 L 94 58 L 69 82 L 47 115 L 36 142 L 32 166 L 30 276 L 74 287 L 160 294 L 222 294 L 231 289 L 234 283 L 235 198 L 231 152 L 233 26 Z"/>
-  <path class="head-region" data-region="back_occipital_right" d="M 438 280 L 326 294 L 235 298 L 235 534 L 239 538 L 290 540 L 348 532 L 375 533 L 383 525 L 404 487 L 419 428 L 437 407 L 444 387 L 456 304 Z"/>
-  <path class="head-region" data-region="back_occipital_left" d="M 30 280 L 10 303 L 19 376 L 30 409 L 50 436 L 59 479 L 83 526 L 99 532 L 151 539 L 230 541 L 231 297 L 83 290 Z"/>
-  <path class="head-region" data-region="back_neck_right" d="M 361 533 L 323 535 L 288 541 L 243 539 L 238 545 L 235 556 L 235 704 L 241 722 L 290 715 L 324 704 L 349 692 L 371 677 L 408 636 L 409 628 L 384 598 Z"/>
-  <path class="head-region" data-region="back_neck_left" d="M 98 533 L 84 579 L 71 604 L 50 630 L 52 637 L 82 670 L 126 699 L 179 718 L 223 722 L 226 718 L 223 705 L 223 558 L 227 539 L 184 541 L 163 537 L 140 538 Z"/>
+  <path class="head-region" data-region="back_crown_right" d="M 229 17 L 286 23 L 334 37 L 370 57 L 394 79 L 427 137 L 432 161 L 434 275 L 234 289 L 234 17 Z"/>
+  <path class="head-region" data-region="back_crown_left" d="M 234 17 L 234 289 L 32 277 L 35 153 L 42 129 L 66 89 L 92 61 L 129 39 L 175 25 L 224 17 Z"/>
+  <path class="head-region" data-region="back_occipital_right" d="M 454 305 L 436 405 L 414 435 L 405 477 L 392 507 L 374 533 L 360 535 L 234 537 L 234 289 Z"/>
+  <path class="head-region" data-region="back_occipital_left" d="M 234 289 L 234 537 L 106 533 L 92 531 L 77 511 L 61 473 L 52 431 L 30 401 L 14 303 Z"/>
+  <path class="head-region" data-region="back_neck_right" d="M 378 591 L 407 629 L 407 635 L 377 669 L 347 691 L 300 711 L 247 721 L 234 721 L 234 537 Z"/>
+  <path class="head-region" data-region="back_neck_left" d="M 234 537 L 234 721 L 213 721 L 170 713 L 121 691 L 93 671 L 59 633 L 90 587 Z"/>
 
 </svg>
