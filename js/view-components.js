@@ -177,6 +177,15 @@ function LogIncident() {
       back_crown_left:'Left Crown', back_crown_right:'Right Crown',
       back_occipital_left:'Left Occipital', back_occipital_right:'Right Occipital',
       back_neck_left:'Left Neck', back_neck_right:'Right Neck',
+      // Legacy aliases from old zone naming
+      front_eye_left:'Left Face', front_eye_right:'Right Face',
+      front_cheek_left:'Left Face', front_cheek_right:'Right Face',
+    },
+    // Map old region IDs to current SVG data-region values
+    _regionAlias: {
+      front_eye_left:'front_face_left', front_eye_right:'front_face_right',
+      front_cheek_left:'front_face_left', front_cheek_right:'front_face_right',
+      front_forehead_center:'front_nose',
     },
 
     async loadSVGs() {
@@ -266,16 +275,7 @@ function LogIncident() {
       const idx = regions.indexOf(regionId);
       if (idx >= 0) regions.splice(idx, 1);
       else          regions.push(regionId);
-      this.$nextTick(() => {
-        document.querySelectorAll('.head-diagram__svg-wrapper').forEach((wrapper, i) => {
-          const vk = this.views[i]?.key;
-          if (!vk) return;
-          const sel = this.incident.painLocations[vk]?.regions ?? [];
-          wrapper.querySelectorAll('.head-region').forEach(p => {
-            p.classList.toggle('selected', sel.includes(p.dataset.region));
-          });
-        });
-      });
+      this.syncRegionClasses();
     },
 
     removePin(viewKey, pinIdx) {
@@ -369,9 +369,11 @@ function LogIncident() {
         document.querySelectorAll('.head-diagram__svg-wrapper').forEach((wrapper, i) => {
           const vk = this.views[i]?.key;
           if (!vk || !this.incident) return;
-          const sel = this.incident.painLocations[vk]?.regions ?? [];
+          const raw = this.incident.painLocations[vk]?.regions ?? [];
+          // Resolve legacy region IDs to current SVG data-region values
+          const sel = new Set(raw.map(r => this._regionAlias[r] ?? r));
           wrapper.querySelectorAll('.head-region').forEach(p => {
-            p.classList.toggle('selected', sel.includes(p.dataset.region));
+            p.classList.toggle('selected', sel.has(p.dataset.region));
           });
         });
       });
