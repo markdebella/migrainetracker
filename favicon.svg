@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Dark background -->
+  <rect width="32" height="32" rx="7" fill="#0d0d14"/>
+
+  <!-- Brain blob (two joined lobes) -->
+  <path fill="#7c6aff" d="
+    M 16 6
+    C 11 4, 4 8, 4 14
+    C 4 20, 8 25, 13 26
+    L 16 27
+    L 19 26
+    C 24 25, 28 20, 28 14
+    C 28 8, 21 4, 16 6 Z
+  "/>
+
+  <!-- Central fissure -->
+  <line x1="16" y1="6" x2="16" y2="27" stroke="#0d0d14" stroke-width="1.5"/>
+
+  <!-- Left hemisphere fold lines -->
+  <path fill="none" stroke="#b8adff" stroke-width="1.1" stroke-linecap="round"
+        d="M 7 11 C 9 9, 13 10, 12 14"/>
+  <path fill="none" stroke="#b8adff" stroke-width="1.1" stroke-linecap="round"
+        d="M 6 18 C 8 16, 12 17, 11 21"/>
+
+  <!-- Right hemisphere fold lines -->
+  <path fill="none" stroke="#b8adff" stroke-width="1.1" stroke-linecap="round"
+        d="M 25 11 C 23 9, 19 10, 20 14"/>
+  <path fill="none" stroke="#b8adff" stroke-width="1.1" stroke-linecap="round"
+        d="M 26 18 C 24 16, 20 17, 21 21"/>
+
+  <!-- Lightning bolt (yellow, striking down from upper-right into brain) -->
+  <path fill="#fbbf24" d="M 22 2 L 14 16 L 19 16 L 12 30 L 23 15 L 18 15 Z"/>
+</svg>

@@ -239,6 +239,13 @@ function LogIncident() {
       return [...base, ...custom];
     },
 
+    get allAffectedActivities() {
+      const base   = [...CONFIG.affectedActivities];
+      const custom = (Alpine.store('data').settings?.customAffectedActivities ?? [])
+        .map(c => ({ id: 'custom_act_' + c.toLowerCase().replace(/\s+/g,'_'), label: c }));
+      return [...base, ...custom];
+    },
+
     async init() {
       const params = Alpine.store('ui').routeParams;
       const id     = params?.id;
@@ -521,6 +528,7 @@ function Settings() {
     importDone: false,
     importDoneMessage: '',
     newAttackType: '',
+    newAffectedActivity: '',
     notifPermission: 'default',
 
     get settings() { return Alpine.store('data').settings ?? {}; },
@@ -596,6 +604,14 @@ function Settings() {
       if (!t || this.settings.customAttackTypes?.includes(t)) return;
       this.settings.customAttackTypes = [...(this.settings.customAttackTypes ?? []), t];
       this.newAttackType = '';
+      this.save();
+    },
+
+    addAffectedActivity() {
+      const t = this.newAffectedActivity.trim();
+      if (!t || this.settings.customAffectedActivities?.includes(t)) return;
+      this.settings.customAffectedActivities = [...(this.settings.customAffectedActivities ?? []), t];
+      this.newAffectedActivity = '';
       this.save();
     },
 

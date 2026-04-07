@@ -14,6 +14,7 @@ const DefaultSettings = {
       customProdromeSymptoms: [],
       customTriggers: [],
       customTreatments: [],
+      customAffectedActivities: [],
       notifications: { enabled: false, intervalMinutes: 120 },
     };
   },

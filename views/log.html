@@ -217,7 +217,7 @@
     <div class="card" style="margin-bottom:var(--space-md)">
       <div class="card__header"><span class="card__title">Affected Activities</span></div>
       <div class="checkbox-group">
-        <template x-for="item in CONFIG.affectedActivities" :key="item.id">
+        <template x-for="item in allAffectedActivities" :key="item.id">
           <button type="button"
                   :class="'checkbox-pill' + (incident.affectedActivities.includes(item.id) ? ' selected' : '')"
                   :aria-pressed="incident.affectedActivities.includes(item.id)"

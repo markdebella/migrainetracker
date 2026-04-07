@@ -93,6 +93,28 @@
       </div>
     </div>
 
+    <!-- ── Custom Affected Activities ───────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)">
+      <div class="card__header"><span class="card__title">Custom Affected Activities</span></div>
+      <div style="display:flex;flex-direction:column;gap:var(--space-sm);margin-bottom:var(--space-md)" x-show="settings.customAffectedActivities?.length">
+        <template x-for="(act, idx) in settings.customAffectedActivities" :key="idx">
+          <div style="display:flex;align-items:center;gap:var(--space-sm)">
+            <span style="flex:1;font-size:0.9rem" x-text="act"></span>
+            <button type="button" class="btn btn-ghost btn-sm"
+                    @click="settings.customAffectedActivities.splice(idx,1); save()"
+                    aria-label="Remove">✕</button>
+          </div>
+        </template>
+      </div>
+      <div class="add-custom-input">
+        <input type="text" class="form-input" x-model="newAffectedActivity"
+               placeholder="Add affected activity…" maxlength="60" style="flex:1"
+               @keydown.enter.prevent="addAffectedActivity()">
+        <button type="button" class="btn btn-secondary btn-sm"
+                @click="addAffectedActivity()" :disabled="!newAffectedActivity.trim()">Add</button>
+      </div>
+    </div>
+
     <!-- ── Import History ───────────────────────────────────────────────── -->
     <div class="card" style="margin-bottom:var(--space-md)" x-show="!importDone">
       <div class="card__header"><span class="card__title">Import History</span></div>
@@ -212,6 +234,7 @@ function Settings() {
     importDone: false,
     importDoneMessage: '',
     newAttackType: '',
+    newAffectedActivity: '',
     notifPermission: 'default',
 
     get settings() { return Alpine.store('data').settings ?? {}; },
@@ -304,6 +327,14 @@ function Settings() {
       if (!t || this.settings.customAttackTypes?.includes(t)) return;
       this.settings.customAttackTypes = [...(this.settings.customAttackTypes ?? []), t];
       this.newAttackType = '';
+      this.save();
+    },
+
+    addAffectedActivity() {
+      const t = this.newAffectedActivity.trim();
+      if (!t || this.settings.customAffectedActivities?.includes(t)) return;
+      this.settings.customAffectedActivities = [...(this.settings.customAffectedActivities ?? []), t];
+      this.newAffectedActivity = '';
       this.save();
     },
 
