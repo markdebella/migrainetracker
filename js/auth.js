@@ -17,6 +17,7 @@ const Auth = (() => {
   let refreshTimer      = null;
   let gapiReady         = false;
   let _afterCredential  = false;  // true when token request originated from One Tap
+  let _loginHint        = null;   // email from One Tap JWT, used to skip account picker
 
   /** Called when the OAuth2 token client delivers a token */
   function handleToken(response) {
@@ -24,10 +25,10 @@ const Auth = (() => {
       if (_afterCredential) {
         // One Tap confirmed identity but the silent Drive-scope request failed
         // (common in Edge with tracking prevention, or on first consent).
-        // Automatically retry with a visible OAuth popup so the user doesn't
-        // get stuck — they'll see a brief Google consent window and be in.
+        // Retry with a visible popup but pass login_hint so the account picker
+        // is skipped — the popup auto-closes almost instantly.
         _afterCredential = false;
-        tokenClient.requestAccessToken({});
+        tokenClient.requestAccessToken({ login_hint: _loginHint || undefined });
         return;
       }
       // Silent refresh or manual attempt failed — show sign-in button.
@@ -54,12 +55,25 @@ const Auth = (() => {
     App.onSignedIn();
   }
 
+  /** Decode a JWT payload without verification (we trust Google's delivery) */
+  function decodeJwtPayload(jwt) {
+    try {
+      const b64 = jwt.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+      return JSON.parse(atob(b64));
+    } catch { return null; }
+  }
+
   /** Called by google.accounts.id (One Tap / silent sign-in) */
-  function handleCredential(/* credentialResponse */) {
+  function handleCredential(credentialResponse) {
+    // Extract email from the JWT so we can pass login_hint to the token
+    // request — this skips the account picker if the popup fallback fires.
+    const payload = decodeJwtPayload(credentialResponse.credential);
+    _loginHint = payload?.email ?? null;
+
     // Identity confirmed — try to get the Drive token silently first.
     // If that fails, handleToken will retry with a visible popup.
     _afterCredential = true;
-    if (tokenClient) tokenClient.requestAccessToken({ prompt: '' });
+    if (tokenClient) tokenClient.requestAccessToken({ prompt: '', login_hint: _loginHint || undefined });
   }
 
   return {
