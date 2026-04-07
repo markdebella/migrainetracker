@@ -37,7 +37,7 @@ function HeadDiagram() {
     async init() {
       for (const view of this.views) {
         try {
-          const r = await fetch(`svg/head-${view.key}.svg`);
+          const r = await fetch(`svg/head-${view.key}.svg?v=${CONFIG.appVersion}`);
           if (r.ok) this.svgContent[view.key] = await r.text();
         } catch { /* ignore */ }
       }
@@ -182,7 +182,7 @@ function LogIncident() {
     async loadSVGs() {
       for (const view of this.views) {
         try {
-          const r = await fetch(`svg/head-${view.key}.svg`);
+          const r = await fetch(`svg/head-${view.key}.svg?v=${CONFIG.appVersion}`);
           if (r.ok) this.svgContent[view.key] = await r.text();
         } catch { /* ignore */ }
       }
