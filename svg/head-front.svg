@@ -1,104 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 677" role="img" aria-label="Front head view">
 
-  <!-- Zones match the dashed-line divisions in head_diagram.png (front) -->
-  <!-- The image is oriented: viewer's right = patient's left -->
+  <!-- Zones traced from user-created mask PNGs (Layer 1-11) -->
 
-  <!-- Right forehead (viewer's left) -->
-  <path class="head-region" data-region="front_forehead_right" d="
-    M 247 0
-    C 190 0, 120 10, 80 50
-    C 60 75, 50 105, 47 140
-    L 47 170
-    L 247 170
-    Z
-  "/>
-
-  <!-- Left forehead (viewer's right) -->
-  <path class="head-region" data-region="front_forehead_left" d="
-    M 247 0
-    C 305 0, 375 10, 415 50
-    C 435 75, 445 105, 448 140
-    L 448 170
-    L 247 170
-    Z
-  "/>
-
-  <!-- Right temple & cheek -->
-  <path class="head-region" data-region="front_temple_right" d="
-    M 47 170
-    L 47 260
-    C 30 300, 22 330, 22 360
-    C 22 390, 30 410, 42 425
-    L 217 425
-    L 217 170
-    Z
-  "/>
-
-  <!-- Right eye / nose area (center-right strip) -->
-  <path class="head-region" data-region="front_face_right" d="
-    M 217 170
-    L 217 425
-    L 247 425
-    L 247 170
-    Z
-  "/>
-
-  <!-- Left eye / nose area (center-left strip) -->
-  <path class="head-region" data-region="front_face_left" d="
-    M 247 170
-    L 247 425
-    L 277 425
-    L 277 170
-    Z
-  "/>
-
-  <!-- Left temple & cheek -->
-  <path class="head-region" data-region="front_temple_left" d="
-    M 448 170
-    L 448 260
-    C 465 300, 472 330, 472 360
-    C 472 390, 465 410, 452 425
-    L 277 425
-    L 277 170
-    Z
-  "/>
-
-  <!-- Right lower jaw -->
-  <path class="head-region" data-region="front_jaw_right" d="
-    M 42 425
-    C 35 460, 40 500, 55 535
-    L 80 575
-    L 247 575
-    L 247 425
-    Z
-  "/>
-
-  <!-- Left lower jaw -->
-  <path class="head-region" data-region="front_jaw_left" d="
-    M 452 425
-    C 460 460, 455 500, 440 535
-    L 415 575
-    L 247 575
-    L 247 425
-    Z
-  "/>
-
-  <!-- Right chin / neck -->
-  <path class="head-region" data-region="front_neck_right" d="
-    M 80 575
-    C 100 615, 130 645, 170 660
-    L 247 677
-    L 247 575
-    Z
-  "/>
-
-  <!-- Left chin / neck -->
-  <path class="head-region" data-region="front_neck_left" d="
-    M 415 575
-    C 395 615, 365 645, 325 660
-    L 247 677
-    L 247 575
-    Z
-  "/>
+  <path class="head-region" data-region="front_forehead_right" d="M 249 -59 L 249 165 L 293 169 L 351 164 L 420 149 L 446 118 L 440 56 L 408 5 L 385 -18 L 349 -38 L 308 -51 Z"/>
+  <path class="head-region" data-region="front_forehead_left" d="M 249 -56 L 214 -56 L 155 -42 L 104 -14 L 83 8 L 56 50 L 47 90 L 47 120 L 79 157 L 197 169 L 245 166 Z"/>
+  <path class="head-region" data-region="front_nose" d="M 217 168 L 217 184 L 221 196 L 221 261 L 217 272 L 219 307 L 224 315 L 280 313 L 280 290 L 276 274 L 277 169 L 249 165 L 244 168 Z"/>
+  <path class="head-region" data-region="front_face_right" d="M 410 154 L 359 164 L 277 172 L 281 314 L 357 309 L 411 297 L 413 285 L 400 261 L 395 231 L 398 201 L 413 163 Z"/>
+  <path class="head-region" data-region="front_face_left" d="M 88 157 L 87 171 L 97 204 L 96 261 L 87 282 L 87 296 L 93 301 L 130 309 L 215 314 L 220 259 L 216 173 L 185 166 Z"/>
+  <path class="head-region" data-region="front_temple_left" d="M 48 124 L 45 205 L 41 215 L 28 229 L 28 242 L 40 315 L 49 338 L 62 329 L 85 302 L 87 283 L 95 266 L 97 214 L 84 165 L 61 134 Z"/>
+  <path class="head-region" data-region="front_temple_right" d="M 444 121 L 412 156 L 413 162 L 398 204 L 395 230 L 400 262 L 415 295 L 432 323 L 446 331 L 454 316 L 465 251 L 466 224 L 450 206 Z"/>
+  <path class="head-region" data-region="front_jaw_left" d="M 191 314 L 128 310 L 92 301 L 80 302 L 51 337 L 67 359 L 78 407 L 100 417 L 111 417 L 129 411 L 155 395 L 174 376 L 186 355 L 191 335 Z"/>
+  <path class="head-region" data-region="front_jaw_right" d="M 308 316 L 304 323 L 305 343 L 313 365 L 332 390 L 352 405 L 386 420 L 414 409 L 419 399 L 425 365 L 444 335 L 427 319 L 414 296 L 393 304 Z"/>
+  <path class="head-region" data-region="front_chin_right" d="M 411 409 L 376 428 L 334 470 L 334 474 L 323 487 L 314 504 L 305 531 L 305 547 L 315 541 L 332 524 L 398 444 L 412 418 Z"/>
+  <path class="head-region" data-region="front_chin_left" d="M 80 410 L 98 446 L 143 502 L 175 538 L 193 549 L 190 530 L 181 504 L 150 455 L 115 427 L 110 420 Z"/>
 
 </svg>
