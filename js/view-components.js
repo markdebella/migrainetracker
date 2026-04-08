@@ -610,8 +610,11 @@ function Analytics() {
         .sort((a,b) => b.helpfulPct - a.helpfulPct);
     },
 
-    drawTrends() {
+    async drawTrends() {
       if (!this.allIncidents || this.allIncidents.length < 2) return;
+      // Wait for the tab content to become visible so canvas has dimensions
+      await this.$nextTick();
+      await new Promise(r => setTimeout(r, 50));
       const canvas = document.getElementById('chart-trends');
       if (canvas) this._charts['trends'] = Charts.trends(canvas, this.allIncidents);
     },

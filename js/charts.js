@@ -199,11 +199,15 @@ const Charts = (() => {
             intersect: false,
           },
           onHover(event, elements, chart) {
+            if (!event?.native) return;
             chart._crosshairX = elements.length ? elements[0].element.x : null;
             canvas.style.cursor = elements.length ? 'pointer' : 'default';
+            chart.draw();
           },
           onClick(event, elements) {
-            if (!elements.length) return;
+            if (!event?.native || !elements.length) return;
+            // Only navigate on real user clicks (not synthetic events)
+            if (event.native.type !== 'click') return;
             const idx = elements[0].index;
             const inc = sorted[idx];
             if (inc?.id) Router.go('log', { id: inc.id });
