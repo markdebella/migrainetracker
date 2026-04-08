@@ -214,11 +214,12 @@ const Charts = (() => {
           },
           plugins: {
             ...baseOptions.plugins,
-            legend: { display: true, labels: { color: '#9090b0', boxWidth: 12 } },
+            legend: { display: true, labels: { color: '#9090b0', usePointStyle: true, pointStyle: 'circle', boxWidth: 8 } },
             tooltip: {
               ...baseOptions.plugins.tooltip,
               mode: 'index',
               intersect: false,
+              usePointStyle: true,
               callbacks: {
                 title: ctx => {
                   const idx = ctx[0]?.dataIndex;
