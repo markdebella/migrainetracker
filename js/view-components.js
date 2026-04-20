@@ -626,8 +626,7 @@ function CheckIn() {
       try {
         this.incident.checkIns = this.incident.checkIns ?? [];
         this.incident.checkIns.push(this.checkIn);
-        const levels = this.incident.checkIns.map(c => c.painLevel).filter(Boolean);
-        this.incident.peakPainLevel = Math.max(...levels);
+        // peakPainLevel is recomputed by App.saveIncident (includes incident + check-in levels)
         await App.saveIncident(this.incident);
         Toast.success('Check-in saved.');
         Router.go('log', { id: this.incident.id });
@@ -679,8 +678,9 @@ function Analytics() {
       if (!this.selectedIncidentId) return;
       let incident = this.allIncidents?.find(i => i.id === this.selectedIncidentId);
       if (!incident) { try { incident = await Drive.loadIncident(this.selectedIncidentId); } catch { return; } }
-      const checkIns = (incident.checkIns ?? []).filter(c => c.painLevel);
-      this.noCheckIns = !checkIns.length;
+      const hasCheckInPain = (incident.checkIns ?? []).some(c => c.painLevel);
+      const hasIncidentPain = !!incident.painLevel;
+      this.noCheckIns = !hasCheckInPain && !hasIncidentPain;
       if (this.noCheckIns) return;
       const canvas = document.getElementById('chart-pain-time');
       if (canvas) this._charts['pain-time'] = Charts.painOverTime(canvas, incident);

@@ -49,9 +49,9 @@
           <canvas id="chart-pain-time" height="200"></canvas>
         </div>
 
-        <!-- No check-ins message -->
+        <!-- No pain data message -->
         <div class="empty-state" x-show="selectedIncidentId && noCheckIns">
-          <p>This incident has no check-ins logged yet.</p>
+          <p>This incident has no pain levels recorded yet.</p>
           <button class="btn btn-secondary btn-sm"
                   style="margin-top:var(--space-md)"
                   @click="Router.go('check-in', {id: selectedIncidentId})">

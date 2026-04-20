@@ -80,16 +80,21 @@ const Charts = (() => {
      * @param {Object} incident
      */
     painOverTime(canvas, incident) {
-      const checkIns = (incident.checkIns ?? [])
-        .filter(c => c.painLevel)
-        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      // Build data points: incident-level pain at startTime + check-in pain levels
+      const points = [];
+      if (incident.painLevel && incident.startTime) {
+        points.push({ timestamp: incident.startTime, painLevel: incident.painLevel, label: 'Initial' });
+      }
+      for (const c of (incident.checkIns ?? []).filter(c => c.painLevel).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))) {
+        points.push({ timestamp: c.timestamp, painLevel: c.painLevel, treatments: c.treatments, note: c.note });
+      }
 
-      if (!checkIns.length) return null;
+      if (!points.length) return null;
 
-      const labels = checkIns.map(c =>
-        Utils.formatDate(c.timestamp) + '\n' + Utils.formatTime(c.timestamp)
+      const labels = points.map(p =>
+        Utils.formatDate(p.timestamp) + '\n' + Utils.formatTime(p.timestamp)
       );
-      const data   = checkIns.map(c => c.painLevel);
+      const data   = points.map(p => p.painLevel);
       const colors = data.map(painColor);
 
       return new Chart(canvas, {
@@ -126,12 +131,13 @@ const Charts = (() => {
               callbacks: {
                 label: ctx => `Pain: ${ctx.parsed.y}`,
                 afterLabel: ctx => {
-                  const ci = checkIns[ctx.dataIndex];
+                  const pt = points[ctx.dataIndex];
                   const txts = [];
-                  if (ci.treatments?.length) {
-                    txts.push('Treatments: ' + ci.treatments.map(t => t.name).join(', '));
+                  if (pt.label) txts.push(pt.label);
+                  if (pt.treatments?.length) {
+                    txts.push('Treatments: ' + pt.treatments.map(t => t.name).join(', '));
                   }
-                  if (ci.note) txts.push(ci.note);
+                  if (pt.note) txts.push(pt.note);
                   return txts;
                 },
               },

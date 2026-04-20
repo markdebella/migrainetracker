@@ -3,7 +3,7 @@
 const CONFIG = {
   clientId: '155253754677-eec50p196kbcv4i265su1ufpsl8bkg82.apps.googleusercontent.com', // Replace with your Google Cloud OAuth client ID
   driveFolderName: 'MigraineTracker',
-  appVersion: '2026.04.20.21.35.03',
+  appVersion: '2026.04.20.21.53.30',
 
   // Attack types shown in the incident form (user can add more in Settings)
   attackTypes: [
