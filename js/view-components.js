@@ -459,7 +459,126 @@ function CheckIn() {
     loading: true,
     saving: false,
     customTreatment: '',
-    checkIn: { id: '', timestamp: '', painLevel: null, symptoms: [], treatments: [], note: '' },
+    checkIn: {
+      id: '', timestamp: '', painLevel: null, symptoms: [], treatments: [], note: '',
+      painLocations: { front: { regions: [], pins: [] }, back: { regions: [], pins: [] } },
+    },
+
+    // ── Head Diagram ──────────────────────────────────────────────────
+    views: [
+      { key: 'front', label: 'Front', imgSrc: 'img/head-front.png' },
+      { key: 'back',  label: 'Back',  imgSrc: 'img/head-back.png' },
+    ],
+    svgContent: { front: '', back: '' },
+    regionLabels: {
+      front_forehead_left:'Left Forehead', front_forehead_right:'Right Forehead',
+      front_temple_left:'Left Temple', front_temple_right:'Right Temple',
+      front_face_left:'Left Face', front_face_right:'Right Face',
+      front_nose:'Nose / Sinus',
+      front_jaw_left:'Left Jaw', front_jaw_right:'Right Jaw',
+      front_chin_left:'Left Chin', front_chin_right:'Right Chin',
+      back_crown_left:'Left Crown', back_crown_right:'Right Crown',
+      back_occipital_left:'Left Occipital', back_occipital_right:'Right Occipital',
+      back_neck_left:'Left Neck', back_neck_right:'Right Neck',
+      front_eye_left:'Left Eye', front_eye_right:'Right Eye',
+      front_cheek_left:'Left Cheek', front_cheek_right:'Right Cheek',
+    },
+    _regionAlias: {
+      front_eye_left:'front_face_left', front_eye_right:'front_face_right',
+      front_cheek_left:'front_face_left', front_cheek_right:'front_face_right',
+      front_forehead_center:'front_nose',
+    },
+
+    async loadSVGs() {
+      for (const view of this.views) {
+        try {
+          const r = await fetch(`svg/head-${view.key}.svg?v=${CONFIG.appVersion}`);
+          if (r.ok) this.svgContent[view.key] = await r.text();
+        } catch { /* ignore */ }
+      }
+      await this.$nextTick();
+    },
+
+    onSvgClick(event, viewKey) {
+      if (event.target.classList.contains('head-region') && event.target.dataset.region) {
+        event.stopPropagation();
+        this.toggleRegion(viewKey, event.target.dataset.region);
+      }
+    },
+
+    _ensurePainLoc(viewKey) {
+      if (!this.checkIn.painLocations[viewKey]) {
+        this.checkIn.painLocations[viewKey] = { regions: [], pins: [] };
+      }
+      return this.checkIn.painLocations[viewKey];
+    },
+
+    addPin(viewKey) {
+      this._ensurePainLoc(viewKey).pins.push({ x: 0.5, y: 0.4 });
+    },
+
+    _dragging: null,
+    _lastPinTap: 0,
+    _lastPinKey: '',
+
+    pinPointerDown(event, viewKey, pinIdx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const wrapper = event.target.closest('.head-diagram__svg-wrapper');
+      if (!wrapper) return;
+      const now = Date.now();
+      const tapKey = `${viewKey}_${pinIdx}`;
+      if (this._lastPinKey === tapKey && now - this._lastPinTap < 400) {
+        this._ensurePainLoc(viewKey).pins.splice(pinIdx, 1);
+        this._lastPinKey = '';
+        return;
+      }
+      this._lastPinTap = now;
+      this._lastPinKey = tapKey;
+      event.target.setPointerCapture(event.pointerId);
+      this._dragging = { viewKey, pinIdx, wrapper };
+    },
+
+    pinPointerMove(event) {
+      if (!this._dragging) return;
+      event.preventDefault();
+      const { viewKey, pinIdx, wrapper } = this._dragging;
+      const rect = wrapper.getBoundingClientRect();
+      const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+      const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+      const pins = this.checkIn.painLocations[viewKey]?.pins;
+      if (pins && pins[pinIdx]) { pins[pinIdx].x = x; pins[pinIdx].y = y; }
+    },
+
+    pinPointerUp() { this._dragging = null; },
+
+    toggleRegion(viewKey, regionId) {
+      const loc = this._ensurePainLoc(viewKey);
+      const idx = loc.regions.indexOf(regionId);
+      if (idx >= 0) loc.regions.splice(idx, 1);
+      else          loc.regions.push(regionId);
+      this.syncRegionClasses();
+    },
+
+    regionLabel(rid) {
+      return this.regionLabels[rid] ?? rid.replace(/_/g, ' ');
+    },
+
+    syncRegionClasses() {
+      this.$nextTick(() => {
+        document.querySelectorAll('.head-diagram__svg-wrapper').forEach((wrapper, i) => {
+          const vk = this.views[i]?.key;
+          if (!vk) return;
+          const raw = this.checkIn.painLocations[vk]?.regions ?? [];
+          const sel = new Set(raw.map(r => this._regionAlias[r] ?? r));
+          wrapper.querySelectorAll('.head-region').forEach(p => {
+            p.classList.toggle('selected', sel.has(p.dataset.region));
+          });
+        });
+      });
+    },
+
+    // ── Core ───────────────────────────────────────────────────────────
 
     async init() {
       const id = Alpine.store('ui').routeParams?.id;
@@ -468,8 +587,16 @@ function CheckIn() {
       this.checkIn.timestamp = Utils.nowISO();
       try {
         this.incident = await Drive.loadIncident(id);
+        // Pre-populate from most recent check-in, or fall back to incident
         const last = this.incident.checkIns?.at(-1);
         if (last?.symptoms) this.checkIn.symptoms = [...last.symptoms];
+        const sourceLoc = last?.painLocations ?? this.incident.painLocations;
+        if (sourceLoc) {
+          this.checkIn.painLocations = JSON.parse(JSON.stringify({
+            front: sourceLoc.front ?? { regions: [], pins: [] },
+            back:  sourceLoc.back  ?? { regions: [], pins: [] },
+          }));
+        }
       } catch {
         Toast.error('Could not load incident.');
         Router.go('dashboard');
@@ -477,6 +604,8 @@ function CheckIn() {
       } finally {
         this.loading = false;
       }
+      await this.loadSVGs();
+      this.syncRegionClasses();
     },
 
     toInput(iso) { return Utils.toInputDateTime(iso); },

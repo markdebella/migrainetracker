@@ -458,6 +458,15 @@
                   </span>
                 </template>
               </div>
+              <div x-show="ci.painLocations && (['front','back'].some(v => ci.painLocations[v]?.regions?.length || ci.painLocations[v]?.pins?.length))"
+                   style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">
+                <template x-for="v in ['front','back']">
+                  <template x-for="rid in ci.painLocations?.[v]?.regions ?? []" :key="v+'_'+rid">
+                    <span style="background:var(--accent-dim);color:var(--accent);font-size:0.65rem;padding:1px 6px;border-radius:var(--radius-full)"
+                          x-text="regionLabel(rid)"></span>
+                  </template>
+                </template>
+              </div>
               <p style="font-size:0.85rem;color:var(--text-secondary)" x-show="ci.note" x-text="ci.note"></p>
             </div>
           </div>
