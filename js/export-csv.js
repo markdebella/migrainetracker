@@ -15,14 +15,22 @@ const ExportCSV = {
     return ids.map(id => list.find(x => x.id === id)?.label ?? id).join(' | ');
   },
 
+  /** Collect all treatments from incident-level + check-ins */
+  _allTreatments(incident) {
+    const treatments = [];
+    for (const t of (incident.treatments ?? [])) treatments.push(t);
+    for (const ci of (incident.checkIns ?? [])) {
+      for (const t of (ci.treatments ?? [])) treatments.push(t);
+    }
+    return treatments;
+  },
+
   /** Summarize treatments for the CSV */
-  _treatmentSummary(checkIns) {
+  _treatmentSummary(incident) {
     const all = {};
-    for (const ci of (checkIns ?? [])) {
-      for (const t of (ci.treatments ?? [])) {
-        if (!all[t.id]) all[t.id] = { name: t.name, ratings: [] };
-        if (t.effectiveness) all[t.id].ratings.push(t.effectiveness);
-      }
+    for (const t of ExportCSV._allTreatments(incident)) {
+      if (!all[t.id]) all[t.id] = { name: t.name, ratings: [] };
+      if (t.effectiveness) all[t.id].ratings.push(t.effectiveness);
     }
     return Object.values(all)
       .map(({ name, ratings }) => {
@@ -34,13 +42,11 @@ const ExportCSV = {
       .join(' | ');
   },
 
-  /** Find the most helpful treatment across all check-ins */
-  _mostHelpful(checkIns) {
+  /** Find the most helpful treatment across incident + check-ins */
+  _mostHelpful(incident) {
     const helpers = [];
-    for (const ci of (checkIns ?? [])) {
-      for (const t of (ci.treatments ?? [])) {
-        if (t.effectiveness === 'helpful') helpers.push(t.name);
-      }
+    for (const t of ExportCSV._allTreatments(incident)) {
+      if (t.effectiveness === 'helpful') helpers.push(t.name);
     }
     return [...new Set(helpers)].join(' | ');
   },
@@ -116,8 +122,8 @@ const ExportCSV = {
         ExportCSV._labels('symptoms',            inc.symptoms),
         ExportCSV._labels('triggers',            inc.triggers),
         ExportCSV._labels('affectedActivities',  inc.affectedActivities),
-        ExportCSV._treatmentSummary(inc.checkIns),
-        ExportCSV._mostHelpful(inc.checkIns),
+        ExportCSV._treatmentSummary(inc),
+        ExportCSV._mostHelpful(inc),
         inc.notes ?? '',
         (inc.checkIns?.length ?? 0).toString(),
       ]));

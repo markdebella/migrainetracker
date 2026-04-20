@@ -157,6 +157,7 @@ function LogIncident() {
     newSymptom: '',
     newTrigger: '',
     newAffectedActivity: '',
+    customTreatment: '',
     customProdromeItems: [],
     customSymptomItems: [],
     customTriggerItems: [],
@@ -311,6 +312,9 @@ function LogIncident() {
       } else {
         try {
           this.incident = await Drive.loadIncident(id);
+          // Ensure fields exist for older incidents
+          if (this.incident.painLevel === undefined) this.incident.painLevel = null;
+          if (!this.incident.treatments) this.incident.treatments = [];
         } catch {
           Toast.error('Could not load incident.');
           Router.go('dashboard');
@@ -362,6 +366,15 @@ function LogIncident() {
         this.incident.affectedActivities.push(id);
       }
       this.newAffectedActivity = '';
+    },
+
+    treatmentAdded(id) { return (this.incident?.treatments ?? []).some(t => t.id === id); },
+    addTreatment(id, name, type) { if (this.treatmentAdded(id)) return; this.incident.treatments.push({ id, name, type, effectiveness: null }); },
+    addCustomTreatment() {
+      const name = this.customTreatment.trim();
+      if (!name) return;
+      this.incident.treatments.push({ id: 'custom_' + Date.now(), name, type: 'custom', effectiveness: null });
+      this.customTreatment = '';
     },
 
     syncRegionClasses() {
@@ -594,14 +607,16 @@ function Analytics() {
 
     computeTreatments() {
       const tally = {};
+      const tallyTreatment = (t) => {
+        if (!t.effectiveness) return;
+        if (!tally[t.id]) tally[t.id] = { name: t.name, helpful: 0, total: 0 };
+        tally[t.id].total++;
+        if (t.effectiveness === 'helpful' || t.effectiveness === 'somewhat_helpful') tally[t.id].helpful++;
+      };
       for (const inc of (this.allIncidents ?? [])) {
+        for (const t of (inc.treatments ?? [])) tallyTreatment(t);
         for (const ci of (inc.checkIns ?? [])) {
-          for (const t of (ci.treatments ?? [])) {
-            if (!t.effectiveness) continue;
-            if (!tally[t.id]) tally[t.id] = { name: t.name, helpful: 0, total: 0 };
-            tally[t.id].total++;
-            if (t.effectiveness === 'helpful' || t.effectiveness === 'somewhat_helpful') tally[t.id].helpful++;
-          }
+          for (const t of (ci.treatments ?? [])) tallyTreatment(t);
         }
       }
       this.treatmentStats = Object.values(tally)

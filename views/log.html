@@ -87,6 +87,39 @@
       </div>
     </div>
 
+    <!-- ── Pain Level ──────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)">
+      <label class="form-label">Pain Level</label>
+      <!-- View mode -->
+      <div x-show="!isEditing">
+        <p x-show="incident.painLevel" style="font-size:0.9rem;color:var(--text-primary)">
+          <span class="type-badge"
+                :style="`background:rgba(var(--pain-${incident.painLevel}-rgb,124,106,255),.12);color:var(--pain-${incident.painLevel});border-color:var(--pain-${incident.painLevel})`"
+                x-text="`${incident.painLevel} — ${CONFIG.painLabels[incident.painLevel]}`"></span>
+        </p>
+        <p x-show="!incident.painLevel" class="form-hint" style="color:var(--text-muted)">Not recorded.</p>
+      </div>
+      <!-- Edit mode -->
+      <div x-show="isEditing">
+        <div class="pain-scale" role="group" aria-label="Pain level selector">
+          <template x-for="n in [1,2,3,4,5,6,7,8,9,10]" :key="n">
+            <button type="button"
+                    :class="`pain-scale__btn pain-btn-${n}` + (incident.painLevel === n ? ' selected' : '')"
+                    :aria-label="`Pain ${n}: ${CONFIG.painLabels[n]}`"
+                    :aria-pressed="incident.painLevel === n"
+                    @click="incident.painLevel = (incident.painLevel === n ? null : n)">
+              <span class="num" x-text="n"></span>
+              <span class="lbl" x-text="CONFIG.painLabels[n]"></span>
+            </button>
+          </template>
+        </div>
+        <p class="form-hint" x-show="incident.painLevel">
+          <strong x-text="incident.painLevel"></strong>
+          — <span x-text="CONFIG.painLabels[incident.painLevel]"></span>
+        </p>
+      </div>
+    </div>
+
     <!-- ── Head Diagram ────────────────────────────────────────────────── -->
     <div class="card" style="margin-bottom:var(--space-md)">
       <div>
@@ -211,6 +244,88 @@
         <button type="button" class="btn btn-secondary btn-sm"
                 @click="addCustom('symptoms', 'newSymptom', customSymptomItems)"
                 :disabled="!newSymptom.trim()">Add</button>
+      </div>
+    </div>
+
+    <!-- ── Treatments ──────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:var(--space-md)">
+      <div class="card__header"><span class="card__title">Treatments</span></div>
+
+      <!-- Already added — view + edit -->
+      <div style="display:flex;flex-direction:column;gap:var(--space-sm);margin-bottom:var(--space-md)"
+           x-show="incident.treatments?.length">
+        <template x-for="(t, idx) in incident.treatments" :key="t.id + idx">
+          <div class="treatment-item">
+            <span class="treatment-item__name" x-text="t.name"></span>
+            <template x-if="isEditing">
+              <div class="effectiveness-group">
+                <button type="button"
+                        :class="'effectiveness-btn' + (t.effectiveness==='helpful' ? ' helpful' : '')"
+                        @click="t.effectiveness = t.effectiveness==='helpful' ? null : 'helpful'"
+                        :aria-pressed="t.effectiveness==='helpful'">✓ Helped</button>
+                <button type="button"
+                        :class="'effectiveness-btn' + (t.effectiveness==='somewhat_helpful' ? ' somewhat' : '')"
+                        @click="t.effectiveness = t.effectiveness==='somewhat_helpful' ? null : 'somewhat_helpful'"
+                        :aria-pressed="t.effectiveness==='somewhat_helpful'">~ Some</button>
+                <button type="button"
+                        :class="'effectiveness-btn' + (t.effectiveness==='unhelpful' ? ' unhelpful' : '')"
+                        @click="t.effectiveness = t.effectiveness==='unhelpful' ? null : 'unhelpful'"
+                        :aria-pressed="t.effectiveness==='unhelpful'">✗ No</button>
+                <button type="button"
+                        :class="'effectiveness-btn' + (t.effectiveness==='unsure' ? ' unsure' : '')"
+                        @click="t.effectiveness = t.effectiveness==='unsure' ? null : 'unsure'"
+                        :aria-pressed="t.effectiveness==='unsure'">? Unsure</button>
+              </div>
+            </template>
+            <template x-if="!isEditing">
+              <span x-show="t.effectiveness"
+                    :style="effectivenessColor(t.effectiveness)"
+                    style="font-size:0.8rem"
+                    x-text="effectivenessLabel(t.effectiveness)"></span>
+            </template>
+            <button type="button" class="treatment-item__remove" x-show="isEditing" @click="incident.treatments.splice(idx,1)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </template>
+      </div>
+      <p x-show="!isEditing && !incident.treatments?.length" class="form-hint" style="color:var(--text-muted)">No treatments recorded.</p>
+
+      <!-- Add treatments — edit mode only -->
+      <div x-show="isEditing">
+        <p class="form-hint" style="margin-bottom:var(--space-sm)">Medication:</p>
+        <div class="checkbox-group" style="margin-bottom:var(--space-md)">
+          <template x-for="med in CONFIG.medications" :key="med.id">
+            <button type="button"
+                    class="checkbox-pill"
+                    :class="{ selected: treatmentAdded(med.id) }"
+                    @click="addTreatment(med.id, med.label, 'medication')"
+                    :disabled="treatmentAdded(med.id)">
+              <span x-text="med.label"></span>
+            </button>
+          </template>
+        </div>
+
+        <p class="form-hint" style="margin-bottom:var(--space-sm)">Non-drug method:</p>
+        <div class="checkbox-group" style="margin-bottom:var(--space-md)">
+          <template x-for="m in CONFIG.nonDrugMethods" :key="m.id">
+            <button type="button"
+                    class="checkbox-pill"
+                    :class="{ selected: treatmentAdded(m.id) }"
+                    @click="addTreatment(m.id, m.label, 'non_drug')"
+                    :disabled="treatmentAdded(m.id)">
+              <span x-text="m.label"></span>
+            </button>
+          </template>
+        </div>
+
+        <div class="add-custom-input">
+          <input type="text" class="form-input" x-model="customTreatment"
+                 placeholder="Other treatment…" maxlength="80" style="flex:1"
+                 @keydown.enter.prevent="addCustomTreatment()">
+          <button type="button" class="btn btn-secondary btn-sm"
+                  @click="addCustomTreatment()" :disabled="!customTreatment.trim()">Add</button>
+        </div>
       </div>
     </div>
 

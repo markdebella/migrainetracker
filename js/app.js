@@ -108,6 +108,8 @@ const IncidentFactory = {
         left:  { regions: [], pins: [] },
         right: { regions: [], pins: [] },
       },
+      painLevel: null,
+      treatments: [],
       premonitorySymptoms: [],
       symptoms: [],
       triggers: [],
@@ -122,6 +124,7 @@ const IncidentFactory = {
   /** Compute and store peakPainLevel and durationMinutes before closing */
   finalize(incident) {
     const levels = incident.checkIns.map(c => c.painLevel).filter(Boolean);
+    if (incident.painLevel) levels.push(incident.painLevel);
     incident.peakPainLevel = levels.length ? Math.max(...levels) : null;
     if (incident.startTime && incident.endTime) {
       incident.durationMinutes = Utils.durationMinutes(incident.startTime, incident.endTime);
@@ -186,6 +189,11 @@ const App = {
   async saveIncident(incident, opts = {}) {
     const { silent = false, close = false } = opts;
     const data = Alpine.store('data');
+
+    // Always recompute peakPainLevel from incident + check-in pain levels
+    const levels = (incident.checkIns ?? []).map(c => c.painLevel).filter(Boolean);
+    if (incident.painLevel) levels.push(incident.painLevel);
+    incident.peakPainLevel = levels.length ? Math.max(...levels) : null;
 
     if (close) {
       incident.endTime  = incident.endTime || Utils.nowISO();
